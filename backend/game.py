@@ -10,7 +10,7 @@ class ESRBRating(Enum):
 	RATING_PENDING=5
 	RATING_PENDING_MATURE=6
 
-class Game
+class Game:
 	name: str
 	id: GID
 	rating: ESRBRating

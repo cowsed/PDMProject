@@ -11,4 +11,6 @@ class Collection:
 
 
 
-def get_collection(col: CollectionID) -> CollectionID
+def get_collection(col: CollectionID) -> CollectionID:
+    raise NotImplementedError
+    return 0
