@@ -1,7 +1,8 @@
-backend/__pycache__/__init__.cpython-312.pyc
-backend/__pycache__/user.cpython-312.pyc
-ui/__pycache__/__init__.cpython-311.pyc
-ui/__pycache__/__init__.cpython-312.pyc
-ui/__pycache__/main_page.cpython-311.pyc
-ui/__pycache__/main_page.cpython-312.pyc
-ui/__pycache__/ui.cpython-312.pyc
+backend/__pycache__/
+ui/__pycache__/
+
+
+
+
+
+__pycache__/
