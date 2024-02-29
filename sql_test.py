@@ -27,7 +27,7 @@ try:
         print("database connected")
         try:
             cursor = conn.cursor()
-            postgreSQL_select_Query = 'select * from "User"'
+            postgreSQL_select_Query = 'select U.username, E.email from "User" U NATURAL JOIN "Emails" E' 
 
             cursor.execute(postgreSQL_select_Query)
             mobile_records = cursor.fetchall()
