@@ -1,7 +1,7 @@
 import urwid
-from backend import user
+from backend import player
 
 
 def begin():
 	print("strartiing")
-	print(user.get_user("u").username)
+	print("user: ",player.get_user("richie3000"))
