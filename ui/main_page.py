@@ -1,7 +1,8 @@
+import datetime
 import urwid
-from backend import player
-
+from backend import player, game, platform
 
 def begin():
-	print("strartiing")
-	print("user: ",player.get_user("richie3000"))
+	print("starting")
+	print(game.search_games("p"))
+	print(game.get_all_games())
