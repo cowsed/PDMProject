@@ -11,7 +11,6 @@ def cs_database():
          ssh_password=credentials.ssh_password,
          remote_bind_address=('127.0.0.1', 5432)) as server:
         server.start()
-        print("server connected")
 
         params = {
             'database': 'p320_14',
