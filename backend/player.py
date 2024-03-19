@@ -43,6 +43,9 @@ def get_player(username: str) -> Optional[Player]:
 			cursor.execute(query, [username])
 			result = cursor.fetchone()
 
+			# no username found
+			if result == None:
+				return None
 
 			return Player(username, result[0], result[1], result[2], result[3])
 	except Exception as e:

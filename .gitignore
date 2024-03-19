@@ -3,3 +3,5 @@ ui/__pycache__/
 __pycache__/
 
 credentials.py
+err.log
+log.log
