@@ -3,5 +3,6 @@ from backend import player
 
 
 def begin():
-	print("strartiing")
-	print("user: ",player.get_user("richie3000"))
+	p = player.get_player("gamer5")
+	print("p", p)
+	print(p.get_emails())

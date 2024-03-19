@@ -5,7 +5,6 @@ class CollectionID:
     id: int
 
 class Collection:
-    games: List[GameID]
     id: CollectionID
     def get_games() -> List[GameID]:
         raise NotImplementedError
