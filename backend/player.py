@@ -54,6 +54,10 @@ def get_player(username: str) -> Optional[Player]:
 		return None
 
 
+class DuplicateNameException:
+	def __init__(self):
+		pass
+
 def add_player(username: str, first_name: str, last_name: str, password: str, emails: List[str]):
 
 	query = 'insert into "Player" (username, first_name, last_name, creation_date, password) values (%s, %s, %s, NOW(), %s)'
@@ -68,6 +72,6 @@ def add_player(username: str, first_name: str, last_name: str, password: str, em
 
 			db.commit()
 		except psycopg2.errors.UniqueViolation:
-			raise Exception("Duplicate username")
+			raise DuplicateNameException
 
 		# loop through emails, adding them

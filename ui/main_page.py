@@ -8,73 +8,120 @@ class LoginPage(urwid.WidgetWrap):
 	signals: typing.ClassVar[list[str]] = ["close"]
 
 	def __init__(self):
+		self.logged_in = False
+		self.user = None
+
 		# close_button = urwid.Button("that's pretty cool")
-		self.title = urwid.Text(u"login", align=urwid.CENTER)
+		self.login_titile = urwid.Text(u"Log In", align=urwid.CENTER)
 		self.username_inp = urwid.Edit("Username: ")
 		self.password_inp = urwid.Edit("Password: ")
-		self.submit = urwid.Button("Submit")
-		self.create_account_button = urwid.Button("Create account")
+		self.login_button = urwid.Button("Submit")
 	
-		urwid.connect_signal(self.submit, "click", self.on_submit_pressed)
-		pile = urwid.Pile(
+		urwid.connect_signal(self.login_button, "click", self.on_login_pressed)
+
+		login = urwid.Pile(
 			[
-				self.title,
+				self.login_titile,
 				self.username_inp,
 				self.password_inp,
-				self.submit,
-                urwid.Text("or"),
-                self.create_account_button
+				self.login_button,
 			]
 		)
-		super().__init__(urwid.AttrMap(urwid.Filler(pile), "popbg"))
 
-	def on_submit_pressed(self, _button: urwid.Button):
+		self.signup_title = urwid.Text(u"Sign Up", align=urwid.CENTER)
+		self.username_inp_signup = urwid.Edit("Username: ")
+		self.firstname_inp_signup = urwid.Edit("First Name: ")
+		self.lastname_inp_signup = urwid.Edit("Last Name: ")
+		self.email_inp_signup = urwid.Edit("Email: ")
+		self.password_inp_signup = urwid.Edit("Password: ")
+		self.create_account_button = urwid.Button("Create account")
+
+		urwid.connect_signal(self.create_account_button, "click", self.on_signup_pressed)
+
+		signup = urwid.Pile(
+			[
+				self.signup_title,
+				self.username_inp_signup,
+				self.firstname_inp_signup,
+				self.lastname_inp_signup,
+				self.email_inp_signup,
+				self.password_inp_signup,
+                self.create_account_button,
+				urwid.Text(" "),
+			])
+
+		self.quit_button = urwid.Button("Quit")
+
+		self.widget = urwid.Pile([urwid.Columns([login, signup], 15), self.quit_button])
+
+	def on_quit_pressed(self, _button: urwid.Button):
+		raise urwid.ExitMainLoop()
+	def	on_signup_pressed(self, _button: urwid.Button):
+		print("signup")
+		username = self.username_inp_signup.edit_text
+		firstname = self.firstname_inp_signup.edit_text
+		lastname = self.lastname_inp_signup.edit_text
+		email = self.email_inp_signup.edit_text
+		password = self.password_inp_signup.edit_text
+
+		if len(username) == 0:
+			self.signup_title = "please enter a username"
+			return
+		
+		if len(firstname) == 0:
+			self.signup_title = "please enter a first name"
+			return
+
+		if len(lastname) == 0:
+			self.signup_title = "please enter a last name"
+			return
+
+		if len(password) == 0:
+			self.signup_title = "please enter a password"
+			return
+		if len(email) == 0:
+			self.signup_title = "please enter an email"
+			return
+		
+		try:
+			player.add_player(username, firstname, lastname, password, [email])
+			pl = player.get_player(username)
+			self.logged_in = True
+			self.user = pl
+		except player.DuplicateNameException:
+			self.signup_title.set_text("Username already in use")
+			return
+
+
+	def on_login_pressed(self, _button: urwid.Button):
 		username = self.username_inp.edit_text
 		password = self.password_inp.edit_text
-				
+
 		pl = player.get_player(username)
 
 		if pl==None:
-			self.title.set_text("Unknown username")
+			self.login_titile.set_text("Unknown username")
 			return
 		if password != pl.password:
-			self.title.set_text("Incorrect password")
+			self.login_titile.set_text("Incorrect password")
 			return
 
 		# logged in successfully
-		urwid.emit_signal(self, "close", None)
-
-class MainWindow(urwid.PopUpLauncher):
-    def __init__(self) -> None:
-        super().__init__(urwid.Button("click-me"))
-        urwid.connect_signal(self.original_widget, "click", lambda button: self.open_pop_up())
-        urwid.emit_signal(self.original_widget, "click", None)
-
-    def create_pop_up(self) -> LoginPage:
-        pop_up = LoginPage()
-        urwid.connect_signal(pop_up, "close", lambda button: self.close_pop_up())
-        return pop_up
-
-    def get_pop_up_parameters(self):
-        return {"left": 0, "top": 0, "overlay_width": 32, "overlay_height": 7}
-
-    def keypress(self, size: tuple[int], key: str) -> str | None:
-        parsed = super().keypress(size, key)
-        if parsed in {"q", "Q"}:
-            raise urwid.ExitMainLoop("Done")
-        return parsed
+		self.user = pl
+		raise urwid.ExitMainLoop()
 
 
 
 def begin():
-	# txt = urwid.Text("Hello World")
-	# fill = urwid.Filler(txt, "top")
-	# loop = urwid.MainLoop(fill)
 	# loop.run()
-	lp = urwid.Filler(urwid.Padding(LoginPage(), urwid.CENTER, 15))
-	loop = urwid.MainLoop(lp)
+	lp = LoginPage()
+	loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
 	loop.run()
+      
+	if not lp.logged_in:
+		print("Quitting...")
+		return
 
-	mp = urwid.Filler(urwid.Padding(MainWindow(), urwid.CENTER, 15))
-	loop = urwid.MainLoop(mp, [("popbg", "white", "dark blue")], pop_ups=True)
-	loop.run()
+	# mp = urwid.Filler(urwid.Padding(MainWindow(), urwid.CENTER, 15))
+	# loop = urwid.MainLoop(mp, [("popbg", "white", "dark blue")], pop_ups=True)
+	# loop.run()
