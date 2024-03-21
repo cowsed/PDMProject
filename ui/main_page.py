@@ -8,7 +8,6 @@ class LoginPage(urwid.WidgetWrap):
 	signals: typing.ClassVar[list[str]] = ["close"]
 
 	def __init__(self):
-		self.logged_in = False
 		self.user = None
 
 		# close_button = urwid.Button("that's pretty cool")
@@ -57,7 +56,6 @@ class LoginPage(urwid.WidgetWrap):
 	def on_quit_pressed(self, _button: urwid.Button):
 		raise urwid.ExitMainLoop()
 	def	on_signup_pressed(self, _button: urwid.Button):
-		print("signup")
 		username = self.username_inp_signup.edit_text
 		firstname = self.firstname_inp_signup.edit_text
 		lastname = self.lastname_inp_signup.edit_text
@@ -65,29 +63,29 @@ class LoginPage(urwid.WidgetWrap):
 		password = self.password_inp_signup.edit_text
 
 		if len(username) == 0:
-			self.signup_title = "please enter a username"
+			self.signup_title.set_text("please enter a username")
 			return
 		
 		if len(firstname) == 0:
-			self.signup_title = "please enter a first name"
+			self.signup_title.set_text("please enter a first name")
 			return
 
 		if len(lastname) == 0:
-			self.signup_title = "please enter a last name"
+			self.signup_title.set_text("please enter a last name")
 			return
 
 		if len(password) == 0:
-			self.signup_title = "please enter a password"
+			self.signup_title.set_text("please enter a password")
 			return
 		if len(email) == 0:
-			self.signup_title = "please enter an email"
+			self.signup_title.set_text("please enter an email")
 			return
 		
 		try:
 			player.add_player(username, firstname, lastname, password, [email])
 			pl = player.get_player(username)
-			self.logged_in = True
 			self.user = pl
+			raise urwid.ExitMainLoop()
 		except player.DuplicateNameException:
 			self.signup_title.set_text("Username already in use")
 			return
@@ -118,7 +116,7 @@ def begin():
 	loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
 	loop.run()
       
-	if not lp.logged_in:
+	if lp.user == None:
 		print("Quitting...")
 		return
 

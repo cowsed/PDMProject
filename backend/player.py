@@ -54,7 +54,7 @@ def get_player(username: str) -> Optional[Player]:
 		return None
 
 
-class DuplicateNameException:
+class DuplicateNameException(Exception):
 	def __init__(self):
 		pass
 
