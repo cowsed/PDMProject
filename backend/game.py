@@ -1,11 +1,6 @@
 import datetime
 from enum import Enum
-import random
-import string
 from database import cs_database
-
-class GameID:
-	id: int
 
 """
 ESRB RATINGS:
@@ -20,18 +15,23 @@ Rating Pending
 Likely Mature 17+
 """
 
+class GID:
+    id: int
+
 class ESRBRating(Enum):
-	EVERYONE=1
-	EVERYONE_10_PLUS = 2
-	TEEN = 3
-	ADULTS_ONLY=4
-	RATING_PENDING=5
-	RATING_PENDING_MATURE=6
+    EVERYONE = 1
+    EVERYONE_10_PLUS = 2
+    TEEN = 3
+    MATURE = 4
+    ADULTS_ONLY = 5
+    RATING_PENDING = 6
+    RATING_PENDING_MATURE = 7
+
 
 class Game:
-	name: str
-	id: GameID
-	rating: ESRBRating
+    name: str
+    id: GID
+    rating: ESRBRating
 
 def search_games(title="", platform="", release_date_range=(datetime.date(1800, 1, 1), datetime.date.today()), developers="", price_range=(0.0, float('inf')), genre=""):
 	"""
@@ -277,3 +277,16 @@ def add_genre_to_game(game_id="", game_title="", genre=""):
 				db.commit()
 	except Exception as e:
 		print(e)
+
+# Remove game with passed id
+def remove_game(id: GID):
+    try:
+        with cs_database() as db:
+            query = 'DELETE FROM Game WHERE id = id'
+            cursor = db.cursor()
+            cursor.execute(query)
+            result = cursor.fetchone()
+            return result
+    except Exception as e:
+        print(e)
+        return None
