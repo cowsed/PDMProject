@@ -35,11 +35,24 @@ def get_game(id: GID):
         print(e)
         return None
 
-
+# Add game with
 def add_game(name: str, id: GID, rating: ESRBRating):
     try:
         with cs_database() as db:
-            query = 'INSERT INTO "Game" (name, id, rating)'
+            query = 'INSERT INTO Game (name, id, rating)'
+            cursor = db.cursor()
+            cursor.execute(query)
+            result = cursor.fetchone()
+            return result
+    except Exception as e:
+        print(e)
+        return None
+
+# Remove game with passed id
+def remove_game(id: GID):
+    try:
+        with cs_database() as db:
+            query = 'DELETE FROM Game WHERE id = id'
             cursor = db.cursor()
             cursor.execute(query)
             result = cursor.fetchone()
