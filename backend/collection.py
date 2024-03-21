@@ -52,7 +52,11 @@ def delete_game(col: CollectionID, game: GameID):
     
 def change_title(col: CollectionID, new_title: str):
     try:
-        return
+        with cs_database() as db:
+            query = '''update Collection set title=%s where collectionID=%s'''
+            cursor = db.cursor()
+            cursor.execute(query, new_title, col)
+            db.commit()
     except Exception as e:
         print(e)
         return
@@ -60,7 +64,7 @@ def change_title(col: CollectionID, new_title: str):
 def delete_collection(col: CollectionID):
     try:
         with cs_database() as db:
-            CCquery = '''delete from CollectionContains where collectionID=%s;'''
+            CCquery = '''delete from CollectionContains where collectionID=%s'''
             Cquery = '''delete from Collection where collectionID=%s''' 
             cursor = db.cursor()
             cursor.execute(CCquery, col)
