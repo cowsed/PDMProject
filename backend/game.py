@@ -33,13 +33,15 @@ class Game:
 
 def search_games(title: str):
 	# SEARCH BY: name, platform, release date, developers, price, and genre
-	# RETURNS: name, platforms, the developers, the publisher, the playtime and the ratings
+	# RETURNS: name, platforms, the developers, the publisher, the playtime, and the ratings
 	try:
+		print("search moment")
 		with cs_database() as db:
-			# TODO get developers, reviews, and playtime
+			# TODO get reviews, and playtime
 			query = '\
 				SELECT G.title, \
 					   (SELECT name FROM "Platform" WHERE platformid=GOP.platformid), \
+					   array(SELECT developer FROM "Development" WHERE gameid=G.gameid), \
 					   G.publisher, \
 					   G.esrb_rating \
 				FROM "Game" G \
@@ -135,5 +137,46 @@ def add_game_to_platform(game_id="", game_title="", platform_id="", platform_tit
 				db.commit()
 			else:
 				print("Failed to insert. You must enter either both 'gameid' and 'platformid' or both 'game_title' and 'platform_title'.")
+	except Exception as e:
+		print(e)
+
+def add_developer_to_game(game_id="", game_title="", developer_name=""):
+	"""
+	Adds an entry to "GameOnPlatform" for the game with the specified id/title and the specified platform.
+
+	Parameters
+    ----------
+    game_id : str, default: ""
+        If specified, the method adds the entry based on ID.
+	game_title : str, default: ""
+		If specified and game_id not specified, the method adds the entry based on the game title.
+	platform_id : str, default: ""
+        If specified, the method adds the entry based on ID.
+	platform_title : str, default: ""
+		If specified and platform_id not specified, the method adds the entry based on the platform title.
+	price : float, default: 0.00
+		The price of the game on this platform.
+	release_date : datetime.date, default: datetime.date(2000, 1, 1)
+		The date the game was released on this platform.
+	"""
+
+	try:
+		with cs_database() as db:
+			if game_id != "":
+				query = '\
+					INSERT INTO "Development" (gameid, developer) \
+					VALUES (%s, %s) \
+				'
+				cursor = db.cursor()
+				cursor.execute(query, (game_id, developer_name))
+				db.commit()
+			else:
+				query = '\
+					INSERT INTO "Development" (gameid, developer) \
+					VALUES ((SELECT gameid FROM "Game" WHERE title=%s), %s) \
+				'
+				cursor = db.cursor()
+				cursor.execute(query, (game_title, developer_name))
+				db.commit()
 	except Exception as e:
 		print(e)
