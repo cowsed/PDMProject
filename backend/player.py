@@ -23,7 +23,7 @@ def get_user(username: str) -> Optional[Player]:
 		with cs_database() as db:
 			query = 'select P.first_name, P.last_name, P.creation_date from "Player" P where P.username=%s'
 			cursor = db.cursor()
-			cursor.execute(query)
+			cursor.execute(query, (username,))
 			result = cursor.fetchone()
 			return result
 	except Exception as e:
