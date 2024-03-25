@@ -1,5 +1,5 @@
 from enum import Enum
-class GID:
+class GameID:
 	id: int
 
 class ESRBRating(Enum):
@@ -12,5 +12,5 @@ class ESRBRating(Enum):
 
 class Game:
 	name: str
-	id: GID
+	id: GameID
 	rating: ESRBRating
