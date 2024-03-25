@@ -4,19 +4,9 @@ from backend.player import Player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
+from ui.games import GamesPage
+from ui.collection import CollectionsPage
 
-
-class GamesPage:
-	def __init__(self, switch_menu, player: Player, args: Dict):
-		self.switch_menu = switch_menu
-		self.player = player
-		self.widget= urwid.Filler(urwid.Text("Games"))
-
-class CollectionsPage:
-	def __init__(self ,switch_menu, player: Player, args: Dict):
-		self.switch_menu = switch_menu
-		self.player = player
-		self.widget= urwid.Filler(urwid.Text("Collection"))
 
 
 

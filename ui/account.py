@@ -6,7 +6,11 @@ class AccountPage:
 	def __init__(self, switch_menu, player: Player, args: Dict):
 		self.switch_menu = switch_menu
 		self.player = player
-		body = [urwid.Text("Account"), urwid.Divider()]
+		body = [    urwid.Text("Account: "+player.username), 
+		            urwid.Divider(), 
+					urwid.Text("Last Online: "+"(LAST ONLINE DATE TODO)"),
+					urwid.Text(f"Account Created: %s"%(player.creation_date)),
+                    urwid.Divider(),]
 
 		for c in ["Change Name", "Back"]:
 			button = urwid.Button(c)
