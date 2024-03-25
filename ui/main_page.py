@@ -5,7 +5,7 @@ from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
 from ui.games import GamesPage
-from ui.collection import CollectionsPage
+from ui.collection import CollectionsPage, NewCollection
 
 
 
@@ -66,7 +66,8 @@ def begin():
 		"account": lambda args: AccountPage(switch_menu, lp.user, args),
 		"account.changename": lambda args: ChangeNamePage(switch_menu, lp.user, args),
 		"games": lambda args: GamesPage(switch_menu, lp.user, args),
-		"collections":lambda args: CollectionsPage(switch_menu, lp.user, args) 
+		"collections":lambda args: CollectionsPage(switch_menu, lp.user, args), 
+		"collections.new":lambda args: NewCollection(switch_menu, lp.user, args),
 	}
 
 
