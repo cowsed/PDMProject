@@ -1,4 +1,4 @@
-from backend.game import GameID
+from backend.game import GID
 from typing import List
 from database import cs_database
 
@@ -13,12 +13,12 @@ class Collection:
     title: str
     visible: bool
 
-    def get_games() -> List[GameID]:
+    def get_games() -> List[GID]:
         raise NotImplementedError
         return []
 
 
-def create_collections(title: str, visble: bool, games: List[GameID]):
+def create_collections(title: str, visble: bool, games: List[GID]):
     try:
         return
     except Exception as e:
@@ -45,7 +45,7 @@ def get_collection(col: CollectionID) -> CollectionID:
         return
 
 
-def add_game(col: CollectionID, game: GameID):
+def add_game(col: CollectionID, game: GID):
     try:
         with cs_database() as db:
             query = '''insert into CollectionContains values %d %d'''
@@ -57,7 +57,7 @@ def add_game(col: CollectionID, game: GameID):
         return
 
 
-def delete_game(col: CollectionID, game: GameID):
+def delete_game(col: CollectionID, game: GID):
     try:
         with cs_database() as db:
             query = '''delete from CollectionContains where collectionID=%d and gameID=%d'''
