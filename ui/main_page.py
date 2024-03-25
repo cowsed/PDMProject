@@ -55,6 +55,26 @@ def switch_menu(towhat: str, args: Dict):
     raise urwid.ExitMainLoop()
 
 
+palette = [
+    ("body", "black", "light gray", "standout"),
+    ("header", "white", "dark red", "bold"),
+    ("screen edge", "light blue", "dark cyan"),
+    ("main shadow", "dark gray", "black"),
+    ("line", "black", "light gray", "standout"),
+    ("bg background", "light gray", "black"),
+    ("bg 1", "black", "dark blue", "standout"),
+    ("bg 1 smooth", "dark blue", "black"),
+    ("bg 2", "black", "dark cyan", "standout"),
+    ("bg 2 smooth", "dark cyan", "black"),
+    ("button normal", "light gray", "dark blue", "standout"),
+    ("button select", "white", "dark green"),
+    ("line", "black", "light gray", "standout"),
+    ("pg normal", "white", "black", "standout"),
+    ("pg complete", "white", "dark magenta"),
+    ("pg smooth", "dark magenta", "black"),
+]
+
+
 def begin():
     lp = LoginPage()
     loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
@@ -69,10 +89,13 @@ def begin():
         "main": lambda args: MainPage(switch_menu, lp.user),
         "account": lambda args: AccountPage(switch_menu, lp.user, args),
         "account.changename": lambda args: ChangeNamePage(switch_menu, lp.user, args),
+
         "games": lambda args: GamesPage(switch_menu, lp.user, args),
+
         "collections": lambda args: CollectionsPage(switch_menu, lp.user, args),
         "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),
         "collections.view": lambda args: ViewCollection(switch_menu, lp.user, args),
+
         "library": lambda args: LibraryPage(switch_menu, lp.user, args),
         "library.onegame": lambda args: LibraryPage(switch_menu, lp.user, args),
     }
@@ -87,5 +110,6 @@ def begin():
             return
 
         new_widget = menu(next_args).widget
-        loop = urwid.MainLoop(new_widget)
+
+        loop = urwid.MainLoop(new_widget, palette)
         loop.run()
