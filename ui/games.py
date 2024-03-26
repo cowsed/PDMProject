@@ -4,18 +4,30 @@ from typing import Dict
 import urwid
 
 
+class GameResultsPage:
+    def __init__(self, player: Player, args: Dict):
+        self.gamelist = args["games"]
+        body = []
+        for game in self.gamelist:
+            body.append(urwid.Button(game, self.pressed, game))
+        pile = urwid.Pile(body)
+        self.widget = urwid.Filler(pile)
+
+
 class GamesPage:
     def __init__(self, switch_menu, player: Player, args: Dict):
         self.switch_menu = switch_menu
         self.player = player
 
         self.title_inp = urwid.Pile([urwid.Edit("Title: ")])
+        rgroup = []
         self.rating_inp = urwid.Pile(
-            [urwid.Text("Rating:"), urwid.CheckBox("Everyone"), urwid.CheckBox("Everyone 10+"), urwid.CheckBox("Teen"), urwid.CheckBox("Mature 17+"), urwid.CheckBox("Adults Only"), urwid.CheckBox("Rating Pending")])
+            [urwid.Text("Rating:"), urwid.RadioButton(rgroup, "Everyone"), urwid.RadioButton(rgroup, "Everyone 10+"), urwid.RadioButton(rgroup, "Teen"), urwid.RadioButton(rgroup, "Mature 17+"), urwid.RadioButton(rgroup, "Adults Only"), urwid.RadioButton(rgroup, "Rating Pending")])
 
         platforms = platform.get_all_platforms()
+        pgroup = []
         self.platform_inp = urwid.Pile(
-            [urwid.Text("Platform:")] + [urwid.CheckBox(pname) for pname in platforms])
+            [urwid.Text("Platform:")] + [urwid.RadioButton(pgroup, pname) for pname in platforms])
 
         self.developer_inp = urwid.Edit("Developer: ")
 
@@ -23,8 +35,6 @@ class GamesPage:
         self.price_high = urwid.Edit("High: $", "10000.0")
         self.price_inp = urwid.Pile(
             [urwid.Text("Price: "), self.price_low, self.price_high])
-
-        print(platforms)
 
         parts = [
             urwid.Text("Games"),
@@ -40,4 +50,5 @@ class GamesPage:
         self.widget = urwid.Filler(urwid.Pile(parts))
 
     def pressed(self, b: urwid.Button, dat: str):
+
         self.switch_menu(dat, {})
