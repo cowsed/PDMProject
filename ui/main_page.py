@@ -4,7 +4,7 @@ from backend import player, game, platform
 
 def begin():
 	print("starting")
-	games = game.search_games(title="vermintide", genre="Co-op")
+	games = game.search_games(title="", genre="Action")
 	for vgame in games:
 		print(vgame)
 

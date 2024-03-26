@@ -76,6 +76,7 @@ def search_games(title="", platform="", release_date_range=(datetime.date(1800, 
 				  AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid), \',\')) LIKE UPPER(%s) \
 				  AND GOP.price >= %s AND GOP.price <= %s \
 				  AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT genre_name FROM "Genre" Ge WHERE G.gameid=Ge.gameid), \',\')) LIKE UPPER(%s) \
+				ORDER BY G.title, GOP.release_date \
 			'
 			cursor = db.cursor()
 			cursor.execute(query, ('%' + title + '%', 
