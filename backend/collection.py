@@ -47,7 +47,7 @@ def add_game(col: CollectionID, game: GameID):
         print(e)
         return
     
-def delete_game(col: CollectionID, game: GameID):
+def remove_game(col: CollectionID, game: GameID):
     try:
         with cs_database() as db:
             query = '''delete from CollectionContains where collectionID=%d and gameID=%d'''
@@ -81,3 +81,10 @@ def delete_collection(col: CollectionID):
     except Exception as e:
         print(e)
         return
+    
+def testing():
+    get_collection(2)
+    # add_game(2, 163)
+    # remove_game(2, 163)
+    # change_title(2, 'New Title')
+    # delete_collection(2)
