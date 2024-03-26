@@ -6,6 +6,9 @@ from database import cs_database
 class CollectionID:
     id: int
 
+    def __init__(self, id: int):
+        self.id = id
+
 
 class Collection:
     id: CollectionID
@@ -13,9 +16,24 @@ class Collection:
     title: str
     visible: bool
 
+    def __init__(self, title: str,  id: CollectionID, owner: str, visible: bool):
+        self.id = id
+        self.owner = owner
+        self.title = title
+        self.visible = visible
+
     def get_games() -> List[GID]:
         raise NotImplementedError
         return []
+
+
+def get_owned_collections(username: str) -> List[Collection]:
+    query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.username = %s'
+    with cs_database() as db:
+        cursor = db.cursor()
+        cursor.execute(query, [username])
+        result = cursor.fetchall()
+        return [Collection(r[0], CollectionID(r[1]), r[2], r[3]) for r in result]
 
 
 def create_collection(id: int, username: str, title: str, visible: bool):

@@ -4,7 +4,7 @@ from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
-from ui.games import GamesPage, GameResultsPage, AllGameDataPage
+from ui.games import GamesPage, GameResultsPage, AllGameDataPage, AddGameToCollection
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
 from ui.library import LibraryPage
 
@@ -95,6 +95,7 @@ def begin():
         "games": lambda args: GamesPage(switch_menu, lp.user, args),
         "games.results": lambda args: GameResultsPage(switch_menu, lp.user, args),
         "games.data": lambda args: AllGameDataPage(switch_menu, lp.user, args),
+        "games.add_to_col": lambda args: AddGameToCollection(switch_menu, lp.user, args),
 
         "collections": lambda args: CollectionsPage(switch_menu, lp.user, args),
         "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),

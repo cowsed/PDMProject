@@ -7,7 +7,42 @@ import datetime
 
 from backend.game import Game, GID
 import backend.game as game
+import backend.collection as collection
 from typing import List, Tuple
+
+
+class AddGameToCollection:
+    def __init__(self, switch_menu, player: Player, args: Dict):
+        self.player = player
+        self.switch_menu = switch_menu
+
+        self.game: Game = args["game"]
+        self.gamelist: List[Game] = args["prevgames"]
+
+        collections = collection.get_owned_collections(self.player.username)
+        collection_buttons = [urwid.Button(
+            c.title, self.col_selected, c.id) for c in collections]
+
+        self.back_btn = urwid.Button("Back to Game", self.back_pressed,
+                                     "back")
+
+        body = [self.back_btn,
+                urwid.Text(f"Add %s to collection" % (self.game.name)),
+                urwid.Divider(),
+                urwid.Pile(collection_buttons)
+                ]
+
+        pile = urwid.Pile(body)
+        self.widget = urwid.Filler(pile)
+
+    def back_pressed(self, b: urwid.Button, dat: str):
+        self.switch_menu(
+            "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
+
+    def col_selected(self, b: urwid.Button, col: collection.CollectionID):
+        collection.add_game(col, self.game.id)
+        self.switch_menu(
+            "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
 
 
 class AllGameDataPage:
@@ -16,11 +51,14 @@ class AllGameDataPage:
         self.player = player
         self.switch_menu = switch_menu
         self.gid = args["gid"]
+        self.prev_games = args["prev_gamelist"]
 
         self.game = game.get_game(self.gid)
 
-        self.back_btn = urwid.Button("Back to search", self.pressed,
+        self.back_btn = urwid.Button("Back to Results", self.pressed,
                                      "back")
+        self.add_to_collection_btn = urwid.Button(
+            "Add to collection", self.pressed, "add")
 
         ps: List[Tuple[Platform, float, datetime.datetime]
                  ] = game.game_platforms(self.game.id)
@@ -29,13 +67,14 @@ class AllGameDataPage:
             f"%s - $%s - %s  %s" % (t[0].name, t[1], t[2], "✅" if True else "🚫"), self.pressed, t[0].id)
 
         platform_info = [to_button(r) for r in ps]
-
         platform_pile = urwid.Pile(platform_info)
 
         body = [self.back_btn,
                 urwid.Divider(),
                 urwid.Text("Game: "+self.game.name),
                 urwid.Text("Publisher: "+self.game.publisher),
+                urwid.Divider(),
+                self.add_to_collection_btn,
                 urwid.Divider(),
                 urwid.Text(
                     "✅ you do own this platform 🚫 you don't own this platform"),
@@ -48,7 +87,10 @@ class AllGameDataPage:
 
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
-            self.switch_menu("games", {})
+            self.switch_menu("games.results", {"games": self.prev_games})
+        if b == self.add_to_collection_btn:
+            self.switch_menu("games.add_to_col", {
+                             "prevgames": self.prev_games, "game": self.game})
 
 
 class GameResultsPage:
@@ -69,7 +111,8 @@ class GameResultsPage:
         if b == self.back_btn:
             self.switch_menu("games", {})
 
-        self.switch_menu("games.data", {"gid": GID(int(dat))})
+        self.switch_menu("games.data", {"gid": GID(
+            int(dat)), "prev_gamelist": self.gamelist})
 
 
 class GamesPage:
