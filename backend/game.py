@@ -59,9 +59,17 @@ def get_game(gid: GID) -> Game:
         return Game(res[0], gid, res[1], res[2])
 
 
-def all_game_data(gid: GID) -> Tuple[str, ESRBRating, str, List[Platform]]:
-    # returns name, rating, publisher, list of platforms
-    pass
+def game_platforms(gid: GID) -> List[Tuple[Platform, float, datetime.date]]:
+    # list of platforms the game is on with the price and release date
+    query = 'select P.platformid, P.name, GOP.price, GOP.release_date from "Platform" P natural join  "GameOnPlatform" GOP WHERE GOP.gameid = %s'
+    with cs_database() as db:
+        cur = db.cursor()
+        cur.execute(query, [gid.id])
+        res = cur.fetchall()
+        if res == None:
+            raise Exception("No Game found with gameid", gid.id)
+
+        return [(Platform(r[0], r[1]), r[2], r[3]) for r in res]
 
 
 def search_games(title="", platform="", release_date_range=(datetime.date(1800, 1, 1), datetime.date.today()), developers="", price_range=(0.0, float('inf')), genre="") -> List[Game]:

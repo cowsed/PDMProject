@@ -45,7 +45,6 @@ class GameResultsPage:
         body = [self.back_btn, urwid.Divider()]
         for game in self.gamelist:
             body.append(urwid.Button(game.name, self.pressed, str(game.id.id)))
-            print(game.id.id)
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)
 
