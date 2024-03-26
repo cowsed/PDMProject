@@ -4,10 +4,17 @@ from database import cs_database
 class PlatformID:
     id: int
 
+    def __init__(self, id: int):
+        self.id = id
+
 
 class Platform:
     name: str
     id: PlatformID
+
+    def __init__(self, name: str, id: PlatformID):
+        self.name = name
+        self.id = id
 
 
 def get_all_platforms():

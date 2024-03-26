@@ -1,12 +1,13 @@
 from backend.player import Player
 import backend.platform as platform
+from backend.platform import Platform
 from typing import Dict
 import urwid
 import datetime
 
 from backend.game import Game, GID
 import backend.game as game
-from typing import List
+from typing import List, Tuple
 
 
 class AllGameDataPage:
@@ -21,10 +22,26 @@ class AllGameDataPage:
         self.back_btn = urwid.Button("Back to search", self.pressed,
                                      "back")
 
+        ps: List[Tuple[Platform, float, datetime.datetime]
+                 ] = game.game_platforms(self.game.id)
+
+        def to_button(t: Tuple[Platform, float, datetime.datetime]): return urwid.Button(
+            f"%s - $%s - %s  %s" % (t[0].name, t[1], t[2], "✅" if True else "🚫"), self.pressed, t[0].id)
+
+        platform_info = [to_button(r) for r in ps]
+
+        platform_pile = urwid.Pile(platform_info)
+
         body = [self.back_btn,
                 urwid.Divider(),
                 urwid.Text("Game: "+self.game.name),
-                urwid.Text("Publisher: "+self.game.publisher)]
+                urwid.Text("Publisher: "+self.game.publisher),
+                urwid.Divider(),
+                urwid.Text(
+                    "✅ you do own this platform 🚫 you don't own this platform"),
+                urwid.Divider(),
+                urwid.Text("Select a version for more options: "),
+                platform_pile]
 
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)
