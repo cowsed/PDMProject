@@ -18,9 +18,15 @@ class Collection:
         return []
 
 
-def create_collections(title: str, visble: bool, games: List[GID]):
+def create_collection(id: int, username: str, title: str, visible: bool):
     try:
-        return
+        with cs_database() as db:
+            data = (id, username, title, visible)
+            query = "INSERT INTO Collection VALUES (%s, %s, %s, %s)"
+            cursor = db.cursor()
+            cursor.execute(query, data)
+            result = cursor.fetchone()
+            return result
     except Exception as e:
         print(e)
         return
