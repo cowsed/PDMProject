@@ -60,6 +60,14 @@ class DuplicateNameException(Exception):
         pass
 
 
+def change_names(username: str, firstname: str, lastname: str):
+    query = 'update "Player" set first_name = %s, last_name = %s where username = %s'
+    with cs_database() as db:
+        cur = db.cursor()
+        cur.execute(query, (firstname, lastname, username))
+        db.commit()
+
+
 def add_player(username: str, first_name: str, last_name: str, password: str, emails: List[str]):
 
     query = 'insert into "Player" (username, first_name, last_name, creation_date, password) values (%s, %s, %s, NOW(), %s)'
