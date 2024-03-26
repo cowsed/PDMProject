@@ -1,6 +1,6 @@
 from typing import Dict
 from backend.player import Player
-from backend.collection import Collection, get_collection
+from backend.collection import Collection, CollectionID, get_collection_data, get_owned_collections
 import urwid
 
 
@@ -14,9 +14,9 @@ class CollectionsPage:
         self.create_button = urwid.Button(
             "Create Collection", self.pressed, "")
 
-        self.collections = ["todo", "load", "actual", "collections"]
-        self.collectionIDs = {
-            self.collections[0]: 4, self.collections[1]: 3, self.collections[2]: 99, self.collections[3]: 2}
+        self.collections = get_owned_collections(self.player.username)
+        self.collection_data = [get_collection_data(
+            col.id, self.player.username) for col in self.collections]
 
         parts = [
             urwid.Text("Collections"),
@@ -24,9 +24,9 @@ class CollectionsPage:
             self.create_button,
             urwid.Divider(),
         ]
-        for c in self.collections:
-            parts.append(urwid.Button(
-                c + "   123 games    playtime: 12234232 minutes", self.pressed, c))
+        for c, dat in zip(self.collections, self.collection_data):
+            parts.append(urwid.Button(f"%s - %d games - %s hrs " %
+                         (c.title, dat[0], dat[1]), self.col_selected, c.id))
 
         parts.append(urwid.Divider())
         parts.append(self.back_button)
@@ -40,8 +40,9 @@ class CollectionsPage:
             self.switch_menu("main", {})
         elif b == self.create_button:
             self.switch_menu("collections.new", {})
+
+    def col_selected(self, b: urwid.Button, id: CollectionID):
         # was a collection
-        id = self.collectionIDs[dat]
         self.switch_menu("collections.view", {"collection": id})
 
 
@@ -85,7 +86,7 @@ class ViewCollection():
         self.widget = urwid.Filler(urwid.Pile(parts))
         return
         self.this_collection_id = args["collection"]
-        self.collection = get_collection(self.this_collection_id)
+        self.collection = get_collection_data(self.this_collection_id)
 
         self.header = urwid.Text("Collection: "+self.collection.name)
 

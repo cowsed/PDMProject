@@ -1,5 +1,5 @@
 from backend.game import GID
-from typing import List
+from typing import List, Tuple
 from database import cs_database
 
 
@@ -50,21 +50,26 @@ def create_collection(id: int, username: str, title: str, visible: bool):
         return
 
 
-def get_collection(col: CollectionID) -> CollectionID:
+def get_collection_data(col: CollectionID, player: str) -> Tuple[int, float]:
     try:
-        raise NotImplementedError("get collection not implemented")
         with cs_database() as db:
-            query = '''select C.title, 
-                       (select count(*) as num_of_games from CollectionContains CC where CC.collectionID=%d), 
-                       (select sum(PG.endtime - PG.starttime) as play_time from PlaysGame PG 
+            query = '''select count(*) as num_of_games from "CollectionContains" CC where CC.collectionID=%s'''
+            query2 = '''select sum(PG.end_time - PG.start_time) as play_time from "PlaysGame" PG 
                             where PG.username=%s and PG.gameID in 
-                            (select CC.gameID from CollectionContains CC where CC.collectionID=%d))'''
+                            (select CC.gameID from "CollectionContains" CC where CC.collectionID=%s)'''
             cursor = db.cursor()
-            cursor.execute(query, col, "", col)
-            result = cursor.fetchone()
-            return result
+            cursor.execute(query, [col.id])
+            num_games = cursor.fetchone()[0]
+            print(num_games)
+
+            cursor.execute(query2, [player, col.id])
+            playtime = cursor.fetchone()[0]
+            print(playtime)
+            if playtime == None:
+                playtime = 0
+            return (num_games, playtime)
     except Exception as e:
-        print(e)
+        print("get collecton data error", e)
         # cs_database.rollback()
         return
 
