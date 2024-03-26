@@ -1,10 +1,10 @@
 from ui.login_page import LoginPage
 import urwid
-from backend.player import Player
+from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
-from ui.games import GamesPage
+from ui.games import GamesPage, GameResultsPage, AllGameDataPage
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
 from ui.library import LibraryPage
 
@@ -77,8 +77,10 @@ palette = [
 
 def begin():
     lp = LoginPage()
-    loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
-    loop.run()
+    # loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
+    # loop.run()
+
+    lp.user = get_player("richie3000")
 
     if lp.user == None:
         print("Quitting...")
@@ -91,6 +93,8 @@ def begin():
         "account.changename": lambda args: ChangeNamePage(switch_menu, lp.user, args),
 
         "games": lambda args: GamesPage(switch_menu, lp.user, args),
+        "games.results": lambda args: GameResultsPage(switch_menu, lp.user, args),
+        "games.data": lambda args: AllGameDataPage(switch_menu, lp.user, args),
 
         "collections": lambda args: CollectionsPage(switch_menu, lp.user, args),
         "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),
