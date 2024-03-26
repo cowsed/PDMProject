@@ -5,19 +5,29 @@ from database import cs_database
 class CollectionID:
     id: int
 
+
 class Collection:
     games: List[GameID]
     id: CollectionID
+
     def get_games() -> List[GameID]:
         raise NotImplementedError
         return []
 
-def create_collections(title: str, visble: bool, games: List[GameID]):
+
+def create_collection(id: int, username: str, title: str, visible: bool):
     try:
-        return
+        with cs_database() as db:
+            data = (id, username, title, visible)
+            query = "INSERT INTO Collection VALUES (%s, %s, %s, %s)"
+            cursor = db.cursor()
+            cursor.execute(query, data)
+            result = cursor.fetchone()
+            return result
     except Exception as e:
         print(e)
         return
+
 
 def get_collection(col: CollectionID) -> CollectionID:
     try:
@@ -35,7 +45,8 @@ def get_collection(col: CollectionID) -> CollectionID:
         print(e)
         # cs_database.rollback()
         return
-    
+
+
 def add_game(col: CollectionID, game: GameID):
     try:
         with cs_database() as db:
@@ -46,8 +57,9 @@ def add_game(col: CollectionID, game: GameID):
     except Exception as e:
         print(e)
         return
-    
-def remove_game(col: CollectionID, game: GameID):
+
+
+def delete_game(col: CollectionID, game: GameID):
     try:
         with cs_database() as db:
             query = '''delete from CollectionContains where collectionID=%d and gameID=%d'''
@@ -57,7 +69,8 @@ def remove_game(col: CollectionID, game: GameID):
     except Exception as e:
         print(e)
         return
-    
+
+
 def change_title(col: CollectionID, new_title: str):
     try:
         with cs_database() as db:
@@ -68,12 +81,13 @@ def change_title(col: CollectionID, new_title: str):
     except Exception as e:
         print(e)
         return
-    
+
+
 def delete_collection(col: CollectionID):
     try:
         with cs_database() as db:
             CCquery = '''delete from CollectionContains where collectionID=%d'''
-            Cquery = '''delete from Collection where collectionID=%d''' 
+            Cquery = '''delete from Collection where collectionID=%d'''
             cursor = db.cursor()
             cursor.execute(CCquery, col)
             cursor.execute(Cquery, col)
