@@ -76,6 +76,7 @@ palette = [
 
 
 def begin():
+    print("\r\n"*20)  # clear the screen
     lp = LoginPage()
     # loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
     # loop.run()

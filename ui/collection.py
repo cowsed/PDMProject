@@ -1,6 +1,6 @@
 from typing import Dict
 from backend.player import Player
-from backend.collection import Collection, CollectionID, get_collection_data, get_owned_collections
+from backend.collection import Collection, CollectionID, get_collection_data, get_owned_collections, create_collection, delete_collection, change_title, get_collection, get_games, delete_game
 import urwid
 
 
@@ -53,13 +53,14 @@ class NewCollection():
 
         self.header = urwid.Text("New Collection")
         self.name = urwid.Edit("Name: ")
+        self.visible = urwid.CheckBox("Visible")
 
         parts = [
             self.header,
             urwid.Divider(),
 
             self.name,
-
+            self.visible,
             urwid.Divider(),
             urwid.Button("Create", self.pressed, "create"),
             urwid.Button("Back", self.pressed, "back")
@@ -70,7 +71,12 @@ class NewCollection():
 
     def pressed(self, b: urwid.Button, dat: str):
         if dat == "create":
-            raise NotImplementedError("Creating new collection")
+            visible = self.visible.get_state()
+            name = self.name.get_edit_text()
+
+            create_collection(self.player.username, name, visible)
+
+            self.switch_menu("collections", {})
         elif dat == "back":
             self.switch_menu("collections", {})
 
@@ -79,17 +85,41 @@ class ViewCollection():
     def __init__(self, switch_menu, player: Player, args: Dict):
         self.switch_menu = switch_menu
         self.player = player
+        self.colID: CollectionID = args["collection"]
+        self.col: Collection = get_collection(self.colID)
 
-        parts = [urwid.Text("Collection Viewing"),
-                 urwid.Button("Back", self.pressed, "back")]
+        self.nameedit = urwid.Edit("Name: ", self.col.title)
+
+        self.delete_btn = urwid.Button(
+            "Delete Collection", self.delete_pressed, "delete")
+
+        settings = urwid.Pile([self.nameedit,
+                               urwid.Button(
+                                   "Rename", self.pressed, "rename"),
+                               urwid.Button(
+                                   "Back", self.pressed, "back"),
+                               self.delete_btn])
+
+        games = [urwid.Text("Games: (Press enter to remove game from collection)")] + [urwid.Button(g[0], self.remove_game, g[1])
+                                                                                       for g in get_games(self.colID)]
+        cols = urwid.Columns(
+            [urwid.LineBox(settings), urwid.LineBox(urwid.Pile(games))])
+        parts = [urwid.Text("Collection"),
+                 cols]
 
         self.widget = urwid.Filler(urwid.Pile(parts))
-        return
-        self.this_collection_id = args["collection"]
-        self.collection = get_collection_data(self.this_collection_id)
-
-        self.header = urwid.Text("Collection: "+self.collection.name)
 
     def pressed(self, b: urwid.Button, dat: str):
         if dat == "back":
             self.switch_menu("collections", {})
+        elif dat == "rename":
+            change_title(self.colID, self.nameedit.get_edit_text())
+            self.switch_menu("collections", {})
+
+    def delete_pressed(self, b: urwid.Button, dat: str):
+        delete_collection(self.colID)
+        self.switch_menu("collections", {})
+
+    def remove_game(self, b: urwid.Button, id: CollectionID):
+        delete_game(self.colID, id)
+        self.switch_menu("collections.view", {"collection": self.colID})

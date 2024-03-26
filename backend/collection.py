@@ -22,9 +22,14 @@ class Collection:
         self.title = title
         self.visible = visible
 
-    def get_games() -> List[GID]:
-        raise NotImplementedError
-        return []
+
+def get_games(id: CollectionID) -> List[Tuple[str, GID]]:
+    query = 'select G.title, G.gameid from "Game" G natural join "CollectionContains" CC  where G.gameid = CC.gameid  and CC.collectionid = %s'
+    with cs_database() as db:
+        cursor = db.cursor()
+        cursor.execute(query, [id.id])
+        result = cursor.fetchall()
+        return [(r[0], GID(r[1])) for r in result]
 
 
 def get_owned_collections(username: str) -> List[Collection]:
@@ -36,18 +41,28 @@ def get_owned_collections(username: str) -> List[Collection]:
         return [Collection(r[0], CollectionID(r[1]), r[2], r[3]) for r in result]
 
 
-def create_collection(id: int, username: str, title: str, visible: bool):
+def create_collection(username: str, title: str, visible: bool):
     try:
         with cs_database() as db:
-            data = (id, username, title, visible)
-            query = "INSERT INTO Collection VALUES (%s, %s, %s, %s)"
+            data = (username, title, visible)
+            query = 'INSERT INTO "Collection" (username, title, visible) VALUES (%s, %s, %s)'
+
             cursor = db.cursor()
             cursor.execute(query, data)
-            result = cursor.fetchone()
-            return result
+            db.commit()
+
     except Exception as e:
-        print(e)
+        print("create collection error", e)
         return
+
+
+def get_collection(id: CollectionID) -> List[Collection]:
+    query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.collectionid = %s'
+    with cs_database() as db:
+        cursor = db.cursor()
+        cursor.execute(query, [id.id])
+        r = cursor.fetchone()
+        return Collection(r[0], CollectionID(r[1]), r[2], r[3])
 
 
 def get_collection_data(col: CollectionID, player: str) -> Tuple[int, float]:
@@ -60,11 +75,9 @@ def get_collection_data(col: CollectionID, player: str) -> Tuple[int, float]:
             cursor = db.cursor()
             cursor.execute(query, [col.id])
             num_games = cursor.fetchone()[0]
-            print(num_games)
 
             cursor.execute(query2, [player, col.id])
             playtime = cursor.fetchone()[0]
-            print(playtime)
             if playtime == None:
                 playtime = 0
             return (num_games, playtime)
@@ -77,33 +90,33 @@ def get_collection_data(col: CollectionID, player: str) -> Tuple[int, float]:
 def add_game(col: CollectionID, game: GID):
     try:
         with cs_database() as db:
-            query = '''insert into CollectionContains values %d %d'''
+            query = '''insert into "CollectionContains" (collectionid, gameid) values (%s, %s)'''
             cursor = db.cursor()
-            cursor.execute(query, col, game)
+            cursor.execute(query, (col.id, game.id))
             db.commit()
     except Exception as e:
-        print(e)
+        print("addgame", e)
         return
 
 
 def delete_game(col: CollectionID, game: GID):
     try:
         with cs_database() as db:
-            query = '''delete from CollectionContains where collectionID=%d and gameID=%d'''
+            query = '''delete from "CollectionContains" where collectionID=%s and gameID=%s'''
             cursor = db.cursor()
-            cursor.execute(query, col, game)
+            cursor.execute(query, (col.id, game.id))
             db.commit()
     except Exception as e:
-        print(e)
+        raise (e)
         return
 
 
 def change_title(col: CollectionID, new_title: str):
     try:
         with cs_database() as db:
-            query = '''update Collection set title=%s where collectionID=%s'''
+            query = '''update "Collection" set title=%s where collectionID=%s'''
             cursor = db.cursor()
-            cursor.execute(query, new_title, col)
+            cursor.execute(query, [new_title, col.id])
             db.commit()
     except Exception as e:
         print(e)
@@ -113,11 +126,11 @@ def change_title(col: CollectionID, new_title: str):
 def delete_collection(col: CollectionID):
     try:
         with cs_database() as db:
-            CCquery = '''delete from CollectionContains where collectionID=%d'''
-            Cquery = '''delete from Collection where collectionID=%d'''
+            CCquery = '''delete from "CollectionContains" where collectionID=%s'''
+            Cquery = '''delete from "Collection" where collectionID=%s'''
             cursor = db.cursor()
-            cursor.execute(CCquery, col)
-            cursor.execute(Cquery, col)
+            cursor.execute(CCquery, [col.id])
+            cursor.execute(Cquery, [col.id])
             db.commit()
     except Exception as e:
         print(e)
