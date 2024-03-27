@@ -7,6 +7,7 @@ from ui.account import AccountPage, ChangeNamePage
 from ui.games import GamesPage, GameResultsPage, AllGameDataPage, AddGameToCollection
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
 from ui.library import LibraryPage
+from ui.friends import FriendsPage, FriendResultsPage
 
 
 class MainPage():
@@ -18,7 +19,7 @@ class MainPage():
 
         body = [urwid.Text("Menu: "+player.username), urwid.Divider()]
 
-        for c in ["Account", "Games", "Collections", "Library", "Quit"]:
+        for c in ["Account", "Games", "Collections", "Library", "Friends", "Quit"]:
             button = urwid.Button(c)
             urwid.connect_signal(button, "click", self.item_chosen, c)
             body.append(urwid.AttrMap(button, None, focus_map="reversed"))
@@ -39,6 +40,8 @@ class MainPage():
                 switch_menu("collections", {})
             case "Library":
                 switch_menu("library", {})
+            case "Friends":
+                switch_menu("friends", {})
             case "Quit":
                 switch_menu("quit", {})
         pass
@@ -46,12 +49,24 @@ class MainPage():
 
 next_menu = "main"
 next_args = {}
+history = []
 
 
 def switch_menu(towhat: str, args: Dict):
     global next_menu, next_args
-    next_menu = towhat
-    next_args = args
+
+    if towhat == "back":
+        if len(history) > 0:
+            next_menu = history[-1][0]
+            next_args = history[-1][1]
+        else:
+            next_menu = "main"
+            next_args = {}
+    else:
+        history.append((next_menu, next_args))
+        next_menu = towhat
+        next_args = args
+
     raise urwid.ExitMainLoop()
 
 
@@ -101,6 +116,9 @@ def begin():
         "collections": lambda args: CollectionsPage(switch_menu, lp.user, args),
         "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),
         "collections.view": lambda args: ViewCollection(switch_menu, lp.user, args),
+
+        "friends": lambda args: FriendsPage(switch_menu, lp.user, args),
+        "friends.results": lambda args: FriendResultsPage(switch_menu, lp.user, args),
 
         "library": lambda args: LibraryPage(switch_menu, lp.user, args),
         "library.onegame": lambda args: LibraryPage(switch_menu, lp.user, args),

@@ -36,8 +36,7 @@ class AddGameToCollection:
         self.widget = urwid.Filler(pile)
 
     def back_pressed(self, b: urwid.Button, dat: str):
-        self.switch_menu(
-            "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
+        self.switch_menu("back", {})
 
     def col_selected(self, b: urwid.Button, col: collection.CollectionID):
         collection.add_game(col, self.game.id)

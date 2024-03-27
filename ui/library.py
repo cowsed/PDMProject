@@ -24,7 +24,7 @@ class LibraryPage:
 
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
-            self.switch_menu("main", {})
+            self.switch_menu("back", {})
         self.switch_menu("library.onegame", {"game": dat, "gameid": 123})
 
 

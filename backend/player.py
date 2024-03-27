@@ -68,6 +68,20 @@ def change_names(username: str, firstname: str, lastname: str):
         db.commit()
 
 
+def search_player_by_email(email: str) -> List[str]:
+    query = 'select DISTINCT P.username from "Player" P natural join "Emails" E where P.username = E.username and UPPER(E.email) like upper(%s)'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query, ['%'+email+'%'])
+            res = cur.fetchall()
+            return [val[0] for val in res]
+
+        except Exception as e:
+            print("email lookup failed", e)
+            raise e
+
+
 def add_player(username: str, first_name: str, last_name: str, password: str, emails: List[str]):
 
     query = 'insert into "Player" (username, first_name, last_name, creation_date, password) values (%s, %s, %s, NOW(), %s)'
