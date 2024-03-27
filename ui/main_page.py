@@ -7,7 +7,7 @@ from ui.account import AccountPage, ChangeNamePage
 from ui.games import GamesPage, GameResultsPage, AllGameDataPage, AddGameToCollection
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
 from ui.library import LibraryPage
-from ui.friends import FriendsPage, FriendResultsPage
+from ui.friends import FriendsSearchPage, FriendResultsPage, FriendInfoPage
 
 
 class MainPage():
@@ -53,12 +53,13 @@ history = []
 
 
 def switch_menu(towhat: str, args: Dict):
-    global next_menu, next_args
+    global next_menu, next_args, history
 
     if towhat == "back":
         if len(history) > 0:
             next_menu = history[-1][0]
             next_args = history[-1][1]
+            history = history[:-1]
         else:
             next_menu = "main"
             next_args = {}
@@ -117,8 +118,9 @@ def begin():
         "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),
         "collections.view": lambda args: ViewCollection(switch_menu, lp.user, args),
 
-        "friends": lambda args: FriendsPage(switch_menu, lp.user, args),
+        "friends": lambda args: FriendsSearchPage(switch_menu, lp.user, args),
         "friends.results": lambda args: FriendResultsPage(switch_menu, lp.user, args),
+        "friends.info": lambda args: FriendInfoPage(switch_menu, lp.user, args),
 
         "library": lambda args: LibraryPage(switch_menu, lp.user, args),
         "library.onegame": lambda args: LibraryPage(switch_menu, lp.user, args),

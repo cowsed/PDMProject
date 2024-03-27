@@ -55,6 +55,49 @@ def get_player(username: str) -> Optional[Player]:
         return None
 
 
+def follow_player(follower: str, followed: str):
+    query = 'insert into "Friends" (username, friend) VALUES (%s, %s)'
+    try:
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [follower, followed])
+            db.commit()
+
+    except Exception as e:
+        print("follow player err", e)
+        raise e
+
+
+def unfollow_player(follower: str, followed: str):
+    query = 'delete from "Friends" where username = %s and friend = %s'
+    try:
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [follower, followed])
+            db.commit()
+
+    except Exception as e:
+        print("unfollow player err", e)
+        raise e
+
+
+def player_follows_player(follower: str, followed: str) -> bool:
+    query = 'select * from "Friends" F where F.username = %s and F.friend  = %s'
+    try:
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [follower, followed])
+            res = cursor.fetchone()
+            if res == None:
+                return False
+            else:
+                return True
+
+    except Exception as e:
+        print("player follows player err", e)
+        raise e
+
+
 class DuplicateNameException(Exception):
     def __init__(self):
         pass
@@ -68,12 +111,12 @@ def change_names(username: str, firstname: str, lastname: str):
         db.commit()
 
 
-def search_player_by_email(email: str) -> List[str]:
-    query = 'select DISTINCT P.username from "Player" P natural join "Emails" E where P.username = E.username and UPPER(E.email) like upper(%s)'
+def search_player_by_email(email: str, username: str) -> List[str]:
+    query = 'select DISTINCT P.username from "Player" P natural join "Emails" E where P.username = E.username and UPPER(E.email) like upper(%s) and E.username != %s'
     with cs_database() as db:
         try:
             cur = db.cursor()
-            cur.execute(query, ['%'+email+'%'])
+            cur.execute(query, ['%'+email+'%', username])
             res = cur.fetchall()
             return [val[0] for val in res]
 
