@@ -5,10 +5,60 @@ from typing import Dict
 import urwid
 import datetime
 
-from backend.game import Game, GID
+from backend.game import Game, GID, purchase_game
 import backend.game as game
 import backend.collection as collection
 from typing import List, Tuple
+
+
+class LogGameTime:
+    def __init__(self, switch_menu, player: Player, args: Dict):
+        self.player = player
+        self.switch_menu = switch_menu
+        self.gid = args["gid"]
+
+        self.back_btn = urwid.Button(
+            "Back to search", self.back_pressed, "back")
+
+        self.error_text = urwid.Text("")
+
+        self.start_time = urwid.Edit("Start Time: ", "3/28/2024 12:01 pm")
+        self.minute_inp = urwid.Edit("Minutes: ", "0")
+
+        self.widget = urwid.Filler(urwid.Pile([self.back_btn,
+                                               self.error_text,
+                                               urwid.Divider(),
+                                               self.start_time,
+                                               urwid.Text(
+                                                   "How long did you play for?"),
+                                               self.minute_inp,
+                                               urwid.Button("Submit", self.submit_pressed)]))
+
+    def back_pressed(self, b: urwid.Button):
+        self.swich_menu("back", {})
+
+    def submit_pressed(self, b: urwid.Button):
+        playtime = 0
+        try:
+            playtime = float(self.minute_inp.get_edit_text())
+        except:
+            self.error_label.set_text("Could not parse number of minutes")
+            return
+
+        date_start = datetime.datetime.now()
+        try:
+            date_start_str = self.start_time.get_edit_text()
+            date_start = datetime.datetime.strptime(
+                date_start_str, "%m/%d/%Y %I:%M %p").date()
+        except:
+            self.error_label.set_text(
+                "Could not parse time started. Should be in format '3/28/2024 12:01 pm'")
+            return
+
+        date_end = date_start + datetime.timedelta(minutes=int(playtime))
+        print(date_start, " ", date_end)
+        raise NotImplementedError(
+            "run backend code with date_end, date_start, self.gid, self.player.username")
 
 
 class AddGameToCollection:
@@ -63,7 +113,7 @@ class AllGameDataPage:
                  ] = game.game_platforms(self.game.id)
 
         def to_button(t: Tuple[Platform, float, datetime.datetime]): return urwid.Button(
-            f"%s - $%s - %s  %s" % (t[0].name, t[1], t[2], "✅" if True else "🚫"), self.pressed, t[0].id)
+            f"%s - $%s - %s  %s" % (t[0].name, t[1], t[2], "✅" if True else "🚫"), self.purchase_pressed)
 
         platform_info = [to_button(r) for r in ps]
         platform_pile = urwid.Pile(platform_info)
@@ -72,17 +122,22 @@ class AllGameDataPage:
                 urwid.Divider(),
                 urwid.Text("Game: "+self.game.name),
                 urwid.Text("Publisher: "+self.game.publisher),
+                urwid.Text("Rating: "+self.game.rating),
                 urwid.Divider(),
                 self.add_to_collection_btn,
                 urwid.Divider(),
                 urwid.Text(
                     "✅ you do own this platform 🚫 you don't own this platform"),
                 urwid.Divider(),
-                urwid.Text("Select a version for more options: "),
+                urwid.Text("Select a version to purchase: "),
                 platform_pile]
 
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)
+
+    def purchase_pressed(self, b: urwid.Button):
+        purchase_game(self.player.username, self.game.id)
+        self.switch_menu("games.results", {"games": self.prev_games})
 
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
@@ -217,7 +272,7 @@ class GameSearchPage:
             0].get_label())  # returns 0, 1, 2, 3, 4, 5
 
         print(sort_by, sort_order, rating, user_rating)
-        raise NotImplemented(
+        raise NotImplementedError(
             "Not submitting sort order, sort by or rating into search: "+repr(sort_by)+" "+repr(sort_order)+" "+repr(rating)+" "+repr(user_rating))
 
         games = game.search_games(title, platform, (date_start, date_end),
