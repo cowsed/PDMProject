@@ -73,4 +73,4 @@ class ChangeNamePage:
                 self.login_titile.set_text("Please enter a last name")
                 return
             change_names(self.player.username, fname, lname)
-            self.switch_menu("account", {})
+            self.switch_menu("account", {}, True)

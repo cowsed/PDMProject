@@ -50,10 +50,13 @@ class MainPage():
 next_menu = "main"
 next_args = {}
 history = []
+user: Player | None = None
 
 
-def switch_menu(towhat: str, args: Dict):
-    global next_menu, next_args, history
+def switch_menu(towhat: str, args: Dict, refresh_user: bool = False):
+    global user, next_menu, next_args, history
+    if refresh_user:
+        user = get_player(user.username)
 
     if towhat == "back":
         if len(history) > 0:
@@ -100,29 +103,31 @@ def begin():
     if lp.user == None:
         print("Quitting...")
         return
+    global user
+    user = lp.user
 
     menu = MainPage(switch_menu, lp.user)
     choices = {
-        "main": lambda args: MainPage(switch_menu, lp.user),
-        "account": lambda args: AccountPage(switch_menu, lp.user, args),
-        "account.changename": lambda args: ChangeNamePage(switch_menu, lp.user, args),
+        "main": lambda args: MainPage(switch_menu, user),
+        "account": lambda args: AccountPage(switch_menu, user, args),
+        "account.changename": lambda args: ChangeNamePage(switch_menu, user, args),
 
-        "games": lambda args: GameSearchPage(switch_menu, lp.user, args),
-        "games.results": lambda args: GameResultsPage(switch_menu, lp.user, args),
-        "games.data": lambda args: AllGameDataPage(switch_menu, lp.user, args),
-        "games.add_to_col": lambda args: AddGameToCollection(switch_menu, lp.user, args),
-        "games.log_time": lambda args: LogGameTime(switch_menu, lp.user, args),
+        "games": lambda args: GameSearchPage(switch_menu, user, args),
+        "games.results": lambda args: GameResultsPage(switch_menu, user, args),
+        "games.data": lambda args: AllGameDataPage(switch_menu, user, args),
+        "games.add_to_col": lambda args: AddGameToCollection(switch_menu, user, args),
+        "games.log_time": lambda args: LogGameTime(switch_menu, user, args),
 
-        "collections": lambda args: CollectionsPage(switch_menu, lp.user, args),
-        "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),
-        "collections.view": lambda args: ViewCollection(switch_menu, lp.user, args),
+        "collections": lambda args: CollectionsPage(switch_menu, user, args),
+        "collections.new": lambda args: NewCollection(switch_menu, user, args),
+        "collections.view": lambda args: ViewCollection(switch_menu, user, args),
 
-        "friends": lambda args: FriendsSearchPage(switch_menu, lp.user, args),
-        "friends.results": lambda args: FriendResultsPage(switch_menu, lp.user, args),
-        "friends.info": lambda args: FriendInfoPage(switch_menu, lp.user, args),
+        "friends": lambda args: FriendsSearchPage(switch_menu, user, args),
+        "friends.results": lambda args: FriendResultsPage(switch_menu, user, args),
+        "friends.info": lambda args: FriendInfoPage(switch_menu, user, args),
 
-        "library": lambda args: LibraryPage(switch_menu, lp.user, args),
-        "library.onegame": lambda args: ViewOnePage(switch_menu, lp.user, args),
+        "library": lambda args: LibraryPage(switch_menu, user, args),
+        "library.onegame": lambda args: ViewOnePage(switch_menu, user, args),
         "library.onegame.record_time": lambda args: LogGameTime(switch_menu, lp.user, args)
     }
 
