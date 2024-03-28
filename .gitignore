@@ -4,3 +4,5 @@ __pycache__/
 
 credentials.py
 .vscode/
+err.log
+log.log
