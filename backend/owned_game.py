@@ -1,6 +1,6 @@
-from backend.player import Player, get_user
+# from backend.player import Player, get_user
 from database import cs_database
-from game import GID, Game
+from backend.game import GID, Game
 
 class OwnedGame:
     gid: GID
@@ -14,8 +14,8 @@ class OwnedGame:
         self.star_rating = star_rating
         self.review_text = review_text
 
-    def get_player(self) -> Player:
-        return get_user(self.username)
+    # def get_player(self) -> Player:
+    #     return get_user(self.username)
     
     def get_game(self) -> Game:
         return Game.get_game(self.gid)
