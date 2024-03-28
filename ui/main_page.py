@@ -94,10 +94,8 @@ palette = [
 def begin():
     print("\r\n"*20)  # clear the screen
     lp = LoginPage()
-    # loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
-    # loop.run()
-
-    lp.user = get_player("richie3000")
+    loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
+    loop.run()
 
     if lp.user == None:
         print("Quitting...")
