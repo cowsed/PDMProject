@@ -3,15 +3,20 @@ from sshtunnel import SSHTunnelForwarder
 
 import credentials
 from contextlib import contextmanager
+import logging
 
 @contextmanager
 def cs_database():
+    logging.basicConfig(filename="log.log")
+    ssh_log = logging.getLogger("ssh_log")
+    ssh_log.disabled=True
+
     with SSHTunnelForwarder(('starbug.cs.rit.edu', 22),
          ssh_username=credentials.ssh_username,
          ssh_password=credentials.ssh_password,
-         remote_bind_address=('127.0.0.1', 5432)) as server:
+         remote_bind_address=('127.0.0.1', 5432),
+         logger=ssh_log) as server:
         server.start()
-        print("server connected")
 
         params = {
             'database': 'p320_14',
