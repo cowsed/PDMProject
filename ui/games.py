@@ -5,7 +5,7 @@ from typing import Dict
 import urwid
 import datetime
 
-from backend.game import Game, GID, purchase_game
+from backend.game import Game, GID, purchase_game, get_game
 import backend.game as game
 import backend.collection as collection
 from typing import List, Tuple
@@ -17,6 +17,8 @@ class LogGameTime:
         self.switch_menu = switch_menu
         self.gid = args["gid"]
 
+        self.game = get_game(self.gid)
+
         self.back_btn = urwid.Button(
             "Back to search", self.back_pressed, "back")
 
@@ -27,6 +29,8 @@ class LogGameTime:
 
         self.widget = urwid.Filler(urwid.Pile([self.back_btn,
                                                self.error_text,
+                                               urwid.Divider(),
+                                               urwid.Text(self.game.name),
                                                urwid.Divider(),
                                                self.start_time,
                                                urwid.Text(

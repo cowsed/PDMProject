@@ -2,6 +2,7 @@ from typing import Dict
 from backend.player import Player
 from backend.collection import Collection, CollectionID, get_collection_data, get_owned_collections, create_collection, delete_collection, change_title, get_collection, get_games, delete_game
 import urwid
+import random
 
 
 class CollectionsPage:
@@ -93,21 +94,28 @@ class ViewCollection():
         self.delete_btn = urwid.Button(
             "Delete Collection", self.delete_pressed, "delete")
 
+        self.record_random = urwid.Button("Play Random", self.random_pressed)
+
         settings = urwid.Pile([self.nameedit,
                                urwid.Button(
                                    "Rename", self.pressed, "rename"),
+                               self.record_random,
                                urwid.Button(
                                    "Back", self.pressed, "back"),
                                self.delete_btn])
-
-        games = [urwid.Text("Games: (Press enter to remove game from collection)")] + [urwid.Button(g[0], self.remove_game, g[1])
-                                                                                       for g in get_games(self.colID)]
+        self.games = get_games(self.colID)
+        game_buttons = [urwid.Text("Games: (Press enter to remove game from collection)")] + [urwid.Button(g[0], self.remove_game, g[1])
+                                                                                              for g in self.games]
         cols = urwid.Columns(
-            [urwid.LineBox(settings), urwid.LineBox(urwid.Pile(games))])
+            [urwid.LineBox(settings), urwid.LineBox(urwid.Pile(game_buttons))])
         parts = [urwid.Text("Collection"),
                  cols]
 
         self.widget = urwid.Filler(urwid.Pile(parts))
+
+    def random_pressed(self, b: urwid.Button):
+        gid = random.sample(self.games, 1)[0][1]
+        self.switch_menu("library.onegame.record_time", {"gid": gid})
 
     def pressed(self, b: urwid.Button, dat: str):
         if dat == "back":
