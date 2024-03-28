@@ -1,5 +1,6 @@
 from typing import Optional
 import datetime
+from backend.owned_game import OwnedGame
 from database import cs_database
 
 class Player:
@@ -17,6 +18,23 @@ class Player:
 
 	def get_platforms_owned():
 		raise NotImplementedError
+	
+	def get_owned_games(self):
+		try:
+			with cs_database() as db:
+				query = 'SELECT gid, username, star_rating, review_text FROM owned_games WHERE username=%s'
+				cursor = db.cursor()
+				cursor.execute(query, (self.username,))
+				results = cursor.fetchall()
+				ret = []
+				for result in results:
+					owned_game = OwnedGame(result[0], result[1], result[2], result[3])
+					ret.append(owned_game)
+				return ret
+		except Exception as e:
+			print(e)
+			# No such user found (or database down)
+			return None
 
 def get_user(username: str) -> Optional[Player]:
 	try:
