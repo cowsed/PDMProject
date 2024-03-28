@@ -114,15 +114,16 @@ class GameResultsPage:
             int(dat)), "prev_gamelist": self.gamelist})
 
 
-class GamesPage:
+class GameSearchPage:
     def __init__(self, switch_menu, player: Player, args: Dict):
         self.switch_menu = switch_menu
         self.player = player
 
         self.title_inp = urwid.Edit("Title: ")
-        rgroup = []
+
+        self.rgroup = []
         self.rating_inp = urwid.Pile(
-            [urwid.Text("Rating:"), urwid.RadioButton(rgroup, "Everyone"), urwid.RadioButton(rgroup, "Everyone 10+"), urwid.RadioButton(rgroup, "Teen"), urwid.RadioButton(rgroup, "Mature 17+"), urwid.RadioButton(rgroup, "Adults Only"), urwid.RadioButton(rgroup, "Rating Pending")])
+            [urwid.Text("Rating:"), urwid.RadioButton(self.rgroup, "Everyone"), urwid.RadioButton(self.rgroup, "Everyone 10+"), urwid.RadioButton(self.rgroup, "Teen"), urwid.RadioButton(self.rgroup, "Mature 17+"), urwid.RadioButton(self.rgroup, "Adults Only"), urwid.RadioButton(self.rgroup, "Rating Pending")])
 
         self.platform_inp = urwid.Edit("Platform: ")
         self.developer_inp = urwid.Edit("Developer: ")
@@ -138,6 +139,18 @@ class GamesPage:
         self.date_inp = urwid.Pile(
             [urwid.Text("Release Date Range: "), self.date_low, self.date_high])
 
+        self.sbgroup = []
+        self.sort_by = urwid.Pile(
+            [urwid.Text("Sort By")]+[urwid.RadioButton(self.sbgroup, text) for text in ["Name", "Price", "Genre", "Release Year"]])
+
+        self.sogroup = []
+        self.sort_order = urwid.Pile(
+            [urwid.Text("Sort Order")]+[urwid.RadioButton(self.sogroup, text) for text in ["ASC", "DESC"]])
+
+        self.rate_group = []
+        self.user_rating = urwid.Pile([urwid.Text("Rating")]+[urwid.RadioButton(self.rate_group, text, user_data=num)
+                                      for (text, num) in zip([">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"], [0, 1, 2, 3, 4, 5])])
+
         self.error_text = urwid.Text("")
         parts = [
             urwid.Text("Games"),
@@ -147,7 +160,7 @@ class GamesPage:
             urwid.Divider(),
             urwid.Text("Search:"),
             urwid.GridFlow([self.title_inp, self.rating_inp,
-                           self.platform_inp, self.developer_inp, self.price_inp, self.date_inp], 20, 1, 1, "left")
+                           self.platform_inp, self.developer_inp, self.price_inp, self.date_inp, self.sort_by, self.sort_order], 20, 1, 1, "left")
 
         ]
 
@@ -188,6 +201,24 @@ class GamesPage:
         developer = self.developer_inp.get_edit_text()
         platform = self.platform_inp.get_edit_text()
         genre = self.genre_inp.get_edit_text()
+
+        sort_order = list(
+            # returns  ASC or DESC
+            filter(lambda radio: radio.get_state(), self.sogroup))[0].get_label()
+
+        sort_by = list(
+            # returns "Name", "Price", "Genre", or "Release Year"
+            filter(lambda radio: radio.get_state(), self.sbgroup))[0].get_label()
+
+        rating = list(filter(lambda radio: radio.get_state(), self.rgroup))[
+            0].get_label()
+
+        user_rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
+            0].get_label())  # returns 0, 1, 2, 3, 4, 5
+
+        print(sort_by, sort_order, rating, user_rating)
+        raise NotImplemented(
+            "Not submitting sort order, sort by or rating into search: "+repr(sort_by)+" "+repr(sort_order)+" "+repr(rating)+" "+repr(user_rating))
 
         games = game.search_games(title, platform, (date_start, date_end),
                                   developer, (price_low, price_high), genre)
