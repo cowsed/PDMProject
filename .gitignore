@@ -5,3 +5,6 @@ __pycache__/
 credentials.py
 err.log
 log.log
+*.prof
+*.svg
+.vscode/

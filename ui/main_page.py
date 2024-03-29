@@ -6,7 +6,7 @@ from typing import Hashable, Callable, Any, Iterable, Dict
 from ui.account import AccountPage, ChangeNamePage
 from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
-from ui.library import LibraryPage, ViewOnePage
+from ui.library import LibraryPage, ViewOnePage, ChangeRating
 from ui.friends import FriendsSearchPage, FriendResultsPage, FriendInfoPage
 
 
@@ -128,7 +128,8 @@ def begin():
 
         "library": lambda args: LibraryPage(switch_menu, user, args),
         "library.onegame": lambda args: ViewOnePage(switch_menu, user, args),
-        "library.onegame.record_time": lambda args: LogGameTime(switch_menu, lp.user, args)
+        "library.onegame.record_time": lambda args: LogGameTime(switch_menu, user, args),
+        "library.onegame.change_rating": lambda args: ChangeRating(switch_menu, user, args),
     }
 
     while (1):

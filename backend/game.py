@@ -72,7 +72,7 @@ def get_owned_games(username: str) -> List[Game]:
 def purchase_game(username: str, gid: GID):
     with cs_database() as db:
         cur = db.cursor()
-        cur.execute('insert into "OwnsGame" (gameid, username, star_rating, review_text) VALUES (%s, %s, 3, \'unreviewed\')', [
+        cur.execute('insert into "OwnsGame" (gameid, username, star_rating, review_text) VALUES (%s, %s, NULL, NULL)', [
                     gid.id, username])
 
         db.commit()
