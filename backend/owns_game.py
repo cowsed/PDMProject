@@ -16,16 +16,19 @@ class owns_game:
 
 
 def add_rating(game: GID, username: str, rating: int, review: str):
-    try:
-        with cs_database() as db:
-            data = (rating, review, game.id, username)
-            query = 'UPDATE "OwnsGame" SET star_rating=%s, review_text=%s \
-                     WHERE gameid=%s AND username=%s'
-            cursor = db.cursor()
-            cursor.execute(query, data)
-            db.commit()
-    except Exception as e:
-        print("add rating error", e)
+    if 0 < rating < 6:
+        try:
+            with cs_database() as db:
+                data = (rating, review, game.id, username)
+                query = 'UPDATE "OwnsGame" SET star_rating=%s, review_text=%s \
+                         WHERE gameid=%s AND username=%s'
+                cursor = db.cursor()
+                cursor.execute(query, data)
+                db.commit()
+        except Exception as e:
+            print("add rating error", e)
+            return
+    else:
         return
 
 
