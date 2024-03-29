@@ -70,6 +70,36 @@ def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime)
         print("play random game error", e)
         return
 
+def get_owned_games(username: str) -> List[Game]:
+    query = 'select G.title, G.gameid, G.publisher, G.esrb_rating from "Game" G natural  join "OwnsGame" O where O.username = %s'
+    with cs_database() as db:
+        cur = db.cursor()
+        cur.execute(query, [username])
+        result = cur.fetchall()
+        res2 = [Game(g[0], GID(g[1]), g[2], g[3]) for g in result]
+        return res2
+
+
+def purchase_game(username: str, gid: GID):
+    with cs_database() as db:
+        cur = db.cursor()
+        cur.execute('insert into "OwnsGame" (gameid, username, star_rating, review_text) VALUES (%s, %s, NULL, NULL)', [
+                    gid.id, username])
+
+        db.commit()
+
+
+def do_i_own_game(username: str, gid: GID) -> bool:
+    query = 'select * from "OwnsGame" where username = %s and gameid = %s'
+    with cs_database() as db:
+        cur = db.cursor()
+        cur.execute(query, [username, gid.id])
+        res = cur.fetchall()
+        if res == None or len(res) == 0:
+            return False
+        return True
+
+
 def game_platforms(gid: GID) -> List[Tuple[Platform, float, datetime.date]]:
     # list of platforms the game is on with the price and release date
     query = 'select P.name, P.platformid, GOP.price, GOP.release_date from "Platform" P natural join  "GameOnPlatform" GOP WHERE GOP.gameid = %s'
