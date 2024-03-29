@@ -77,8 +77,8 @@ def search_games(title="", platform="", release_date_range=(datetime.date(1800, 
     Returns every game that matches the provided search criteria.
 
     Parameters
-----------
-title : str, default: ""
+	----------
+	title : str, default: ""
     The search string to compare to each video game title.
     platform : str, default: ""
             The search string to compare to each platform title.
@@ -216,8 +216,8 @@ def add_game_to_platform(game_id="", game_title="", platform_id="", platform_tit
     Adds an entry to "GameOnPlatform" for the game with the specified id/title and the specified platform.
 
     Parameters
-----------
-game_id : str, default: ""
+	----------
+	game_id : str, default: ""
     If specified, the method adds the entry based on ID.
     game_title : str, default: ""
             If specified and game_id not specified, the method adds the entry based on the game title.
@@ -263,8 +263,8 @@ def add_developer_to_game(game_id="", game_title="", developer_name=""):
     Adds an entry to "Development" for the game with the specified id/title and the specified developer.
 
     Parameters
-----------
-game_id : str, default: ""
+	----------
+	game_id : str, default: ""
     If specified, the method adds the entry based on ID.
     game_title : str, default: ""
             If specified and game_id not specified, the method adds the entry based on the game title.
@@ -299,8 +299,8 @@ def add_genre_to_game(game_id="", game_title="", genre=""):
     Adds an entry to "Genre" for the game with the specified id/title and the specified genre.
 
     Parameters
-----------
-game_id : str, default: ""
+	----------
+	game_id : str, default: ""
     If specified, the method adds the entry based on ID.
     game_title : str, default: ""
             If specified and game_id not specified, the method adds the entry based on the game title.
@@ -330,8 +330,6 @@ game_id : str, default: ""
         print(e)
 
 # Remove game with passed id
-
-
 def remove_game(id: GID):
     try:
         with cs_database() as db:
