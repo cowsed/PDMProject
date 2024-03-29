@@ -1,7 +1,7 @@
 from backend.game import GID
 from typing import List, Tuple
 from database import cs_database
-
+from datetime import datetime
 
 class CollectionID:
     id: int
@@ -31,12 +31,16 @@ def get_games(id: CollectionID) -> List[Tuple[str, GID]]:
         result = cursor.fetchall()
         return [(r[0], GID(r[1])) for r in result]
 
-def play_random_game(id: CollectionID):
+def play_random_game(id: CollectionID, username: str, start_time: datetime, end_time: datetime):
     try:
-        query = 'select G.gameid from "Game" G natural join "CollectionContains" CC where G.gameid = CC.gameid and CC.collectionid = %s order by random() limit 1'
+        query = '''insert into "PlaysGame" values (
+                   (select G.gameid from "Game" G natural join "CollectionContains" CC 
+                   where G.gameid = CC.gameid and CC.collectionid = %s order by random() limit 1),
+                   %s, %s, %s)
+                   '''
         with cs_database() as db:
             cursor = db.cursor()
-            cursor.execute(query, [id.id])
+            cursor.execute(query, [id.id, username, start_time, end_time])
             result = cursor.fetchall()
             return [(r[0], GID(r[1])) for r in result]
     except Exception as e:
