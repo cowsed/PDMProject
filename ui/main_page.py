@@ -4,9 +4,9 @@ from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
-from ui.games import GamesPage, GameResultsPage, AllGameDataPage, AddGameToCollection
+from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
-from ui.library import LibraryPage
+from ui.library import LibraryPage, ViewOnePage, ChangeRating
 from ui.friends import FriendsSearchPage, FriendResultsPage, FriendInfoPage
 
 
@@ -107,10 +107,11 @@ def begin():
         "account": lambda args: AccountPage(switch_menu, lp.user, args),
         "account.changename": lambda args: ChangeNamePage(switch_menu, lp.user, args),
 
-        "games": lambda args: GamesPage(switch_menu, lp.user, args),
+        "games": lambda args: GameSearchPage(switch_menu, lp.user, args),
         "games.results": lambda args: GameResultsPage(switch_menu, lp.user, args),
         "games.data": lambda args: AllGameDataPage(switch_menu, lp.user, args),
         "games.add_to_col": lambda args: AddGameToCollection(switch_menu, lp.user, args),
+        "games.log_time": lambda args: LogGameTime(switch_menu, lp.user, args),
 
         "collections": lambda args: CollectionsPage(switch_menu, lp.user, args),
         "collections.new": lambda args: NewCollection(switch_menu, lp.user, args),
@@ -121,7 +122,9 @@ def begin():
         "friends.info": lambda args: FriendInfoPage(switch_menu, lp.user, args),
 
         "library": lambda args: LibraryPage(switch_menu, lp.user, args),
-        "library.onegame": lambda args: LibraryPage(switch_menu, lp.user, args),
+        "library.onegame": lambda args: ViewOnePage(switch_menu, lp.user, args),
+        "library.onegame.record_time": lambda args: LogGameTime(switch_menu, lp.user, args),
+        "library.onegame.change_rating": lambda args: ChangeRating(switch_menu, lp.user, args),
     }
 
     while (1):
