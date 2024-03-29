@@ -35,10 +35,8 @@ def add_rating(game: GID, username: str, rating: int, review: str):
 def delete_rating(game: GID, username: str):
     try:
         with cs_database() as db:
-            rating = 0
-            review = "unreviewed"
-            data = (rating, review, game.id, username)
-            query = 'UPDATE "OwnsGame" SET star_rating=%s, review_text=%s \
+            data = (game.id, username)
+            query = 'UPDATE "OwnsGame" SET star_rating=NULL, review_text=NULL \
                      WHERE gameid=%s AND username=%s'
             cursor = db.cursor()
             cursor.execute(query, data)

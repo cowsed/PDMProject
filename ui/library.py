@@ -45,17 +45,22 @@ class ViewOnePage:
         self.change_rating = urwid.Button("Change Rating", self.pressed)
         self.delete_rating = urwid.Button("Delete Rating", self.pressed)
         self.rating = get_ratings(self.gameid, self.player.username)
+        self.rating_text = urwid.Text("Rating")
+
+        if self.rating.star_rating is not None:
+            self.rating_text.set_text("\n" + str(self.rating.star_rating) + " stars\n" +
+                                      self.rating.review_text)
+        else:
+            self.rating_text.set_text("\nNo Rating")
 
         parts = [
             self.back_btn,
             urwid.Text("Game: " + self.game.name),
             urwid.Divider(),
             self.record_time,
-            # show ratings
-            urwid.Text("\nRating:\n" + str(self.rating.star_rating) + " stars"),
-            urwid.Text(self.rating.review_text),
             self.change_rating,
-            self.delete_rating
+            self.delete_rating,
+            self.rating_text,
         ]
 
         self.widget = urwid.Filler(urwid.Pile(parts))
@@ -103,6 +108,7 @@ class ChangeRating:
         if dat == "change":
             star = self.star.get_edit_text()
             rating = self.rating.get_edit_text()
-            add_rating(self.gameid, self.player.username, int(star), rating)
+            if star != '':
+                add_rating(self.gameid, self.player.username, int(star), rating)
         else:
             self.switch_menu("library.onegame", {"gameid": dat})
