@@ -49,7 +49,7 @@ class ViewOnePage:
 
         if self.rating.star_rating is not None:
             self.rating_text.set_text("\n" + str(self.rating.star_rating) + " stars\n" +
-                                      self.rating.review_text)
+                                      (self.rating.review_text or ''))
         else:
             self.rating_text.set_text("\nNo Rating")
 

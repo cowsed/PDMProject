@@ -11,7 +11,6 @@ class LoginPage(urwid.WidgetWrap):
     def __init__(self):
         self.user = None
 
-        # close_button = urwid.Button("that's pretty cool")
         self.login_titile = urwid.Text(u"Log In", align=urwid.CENTER)
         self.username_inp = urwid.Edit("Username: ")
         self.password_inp = urwid.Edit("Password: ")
