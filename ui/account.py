@@ -1,6 +1,6 @@
 import urwid
 from typing import Dict
-from backend.player import Player, change_names, get_last_online
+from backend.player import Player, change_names
 
 
 class AccountPage:
