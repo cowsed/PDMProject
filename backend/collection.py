@@ -24,7 +24,7 @@ class Collection:
 
 
 def get_games(id: CollectionID) -> List[Tuple[str, GID]]:
-    query = 'select G.title, G.gameid from "Game" G natural join "CollectionContains" CC  where G.gameid = CC.gameid  and CC.collectionid = %s'
+    query = 'select G.title, G.gameid from "Game" G natural join "CollectionContains" CC  where G.gameid = CC.gameid  and CC.collectionid = %s order by G.title'
     with cs_database() as db:
         cursor = db.cursor()
         cursor.execute(query, [id.id])
