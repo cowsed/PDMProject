@@ -31,6 +31,17 @@ def get_games(id: CollectionID) -> List[Tuple[str, GID]]:
         result = cursor.fetchall()
         return [(r[0], GID(r[1])) for r in result]
 
+def play_random_game(id: CollectionID):
+    try:
+        query = 'select G.gameid from "Game" G natural join "CollectionContains" CC where G.gameid = CC.gameid and CC.collectionid = %s order by random() limit 1'
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [id.id])
+            result = cursor.fetchall()
+            return [(r[0], GID(r[1])) for r in result]
+    except Exception as e:
+        print("play random game error", e)
+        return
 
 def get_owned_collections(username: str) -> List[Collection]:
     query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.username = %s ORDER BY C.title'
