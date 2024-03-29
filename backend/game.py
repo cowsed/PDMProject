@@ -58,6 +58,17 @@ def get_game(gid: GID) -> Game:
             raise Exception("No Game found with gameid", gid.id)
         return Game(res[0], gid, res[1], res[2])
 
+def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime):
+    try:
+        query = 'insert into "PlaysGame" values (%s, %s, %s, %s)'
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [gid.id, username, start_time, end_time])
+            result = cursor.fetchall()
+            return [(r[0], GID(r[1])) for r in result]
+    except Exception as e:
+        print("play random game error", e)
+        return
 
 def game_platforms(gid: GID) -> List[Tuple[Platform, float, datetime.date]]:
     # list of platforms the game is on with the price and release date
