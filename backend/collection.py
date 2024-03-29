@@ -33,7 +33,7 @@ def get_games(id: CollectionID) -> List[Tuple[str, GID]]:
 
 
 def get_owned_collections(username: str) -> List[Collection]:
-    query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.username = %s'
+    query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.username = %s ORDER BY C.title'
     with cs_database() as db:
         cursor = db.cursor()
         cursor.execute(query, [username])
