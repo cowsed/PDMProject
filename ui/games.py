@@ -237,14 +237,14 @@ class GameSearchPage:
         date_start_str = self.date_low.get_edit_text()
         date_end_str = self.date_high.get_edit_text()
 
-        # try:
-        #     date_start = datetime.datetime.strptime(
-        #         date_start_str, "%m/%d/%Y").date()
-        #     date_end = datetime.datetime.strptime(
-        #         date_end_str, "%m/%d/%Y").date()
-        # except Exception as e:
-        #     self.error_text.set_text("Date range error: "+repr(e))
-        #     return
+        try:
+            date_start = datetime.datetime.strptime(
+                date_start_str, "%m/%d/%Y").date()
+            date_end = datetime.datetime.strptime(
+                date_end_str, "%m/%d/%Y").date()
+        except Exception as e:
+            self.error_text.set_text("Date range error: "+repr(e))
+            return
 
         price_low = 0
         price_high = float('inf')
