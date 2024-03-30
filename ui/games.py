@@ -276,10 +276,10 @@ class GameSearchPage:
             # returns "Name", "Price", "Genre", or "Release Year"
             filter(lambda radio: radio.get_state(), self.sbgroup))[0].get_label()
         column_map = {
-            "Name": "G.title",
-            "Price": "GOP.price",
-            "Genre": "Ge.genre_name",
-            "Release Year": "GOP.release_date",
+            "Name": 0,
+            "Price": 7,
+            "Genre": 8,
+            "Release Year": 9,
         }
         if sort_by in column_map:
             sort_by = column_map[sort_by]

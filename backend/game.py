@@ -145,8 +145,8 @@ def search_games(
             The ESRB rating to include in the search results.
     rating: int, default: 0
             The minimum rating to include in the search results.
-    sort_column: str, default: "G.title"
-            The column by which to sort the search results.
+    sort_column: int, default: 0
+            The column returned by the query by which to sort the search results.
     sort_order: str, default: "ASC"
             The direction in which to sort the search results.
 
@@ -175,7 +175,11 @@ def search_games(
                        ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid) AS developers,
                        G.publisher,
                        G.esrb_rating,
-                       UR.avg_rating
+                       UR.avg_rating,
+
+                       GOP.price AS price,
+                       UPPER((SELECT genre_name FROM "Genre" Ge WHERE G.gameid=Ge.gameid LIMIT 1)) AS primary_genre,
+                       DATE_PART('year', GOP.release_date) AS release_year
                 FROM "Game" G
                 JOIN "GameOnPlatform" GOP ON GOP.gameid=G.gameid
                 JOIN UR ON UR.gameid=G.gameid
@@ -188,9 +192,7 @@ def search_games(
                   AND COALESCE(UR.avg_rating, 0.0) >= %s
                   AND UPPER(G.esrb_rating) LIKE UPPER(%s)
             """
-            # This does not play nicely with parameterization, so it is a dynamic query
-            order_clause = 'ORDER BY ' + sort_column + ' ' + sort_order + ', GOP.release_date ASC'
-            query += order_clause
+
             cursor = db.cursor()
             cursor.execute(query, ('%' + title + '%',
                                    '%' + platform + '%',
@@ -204,6 +206,11 @@ def search_games(
                                    esrb,
                                    ))
             result = cursor.fetchall()
+            print(result[0])
+
+            # sort the result by the chosen column
+            result = sorted(result, key = lambda i: (i[sort_column] is None, i[sort_column]), reverse = (sort_order == "DESC"))
+
             res2 = [
                 (
                     Game(g[0], GID(g[1]), g[4], g[5]),
