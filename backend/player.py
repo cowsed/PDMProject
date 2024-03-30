@@ -155,7 +155,7 @@ def search_player_by_email(email: str, username: str) -> List[str]:
 
 
 def add_player(username: str, first_name: str, last_name: str, password: str, emails: List[str]):
-    query = 'insert into "Player" (username, first_name, last_name, creation_date, password, hash, last_online) values (%s, %s, %s, NOW(), %s, %s, NOW())'
+    query = 'insert into "Player" (username, first_name, last_name, creation_date, password, salt, last_online) values (%s, %s, %s, NOW(), %s, %s, NOW())'
     email_query = 'insert into "Emails" (username, email) values (%s, %s)'
 
     # hash the password
