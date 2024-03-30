@@ -1,5 +1,5 @@
 from database import cs_database
-from backend.game import GID
+from backend.game import Game, GID
 
 
 class owns_game:
@@ -14,6 +14,21 @@ class owns_game:
         self.star_rating = rating
         self.review_text = review
 
+def owns_game(game: Game, username):
+    try:
+        with cs_database() as db:
+            data = (game.id, username)
+            query = 'select * from "OwnsGame" where gameid=%s and username=%s'
+            cursor = db.cursor()
+            cursor.execute(query, data)
+            db.commit()
+            rows = cursor.rowcount
+            if rows == 0:
+                return False
+            return True
+    except Exception as e:
+        print("owns game error", e)
+        return
 
 def add_rating(game: GID, username: str, rating: int, review: str):
     if 0 < rating < 6:
@@ -32,7 +47,7 @@ def add_rating(game: GID, username: str, rating: int, review: str):
         return
 
 
-def delete_rating(game: GID, username: str):
+def delete_rating(game: Game, username: str):
     try:
         with cs_database() as db:
             data = (game.id, username)
@@ -46,7 +61,7 @@ def delete_rating(game: GID, username: str):
         return
 
 
-def get_ratings(game: GID, username: str) -> owns_game:
+def get_ratings(game: Game, username: str) -> owns_game:
     query = 'SELECT O.star_rating, O.review_text \
              from "OwnsGame" O WHERE O.gameid = %s AND O.username = %s'
     with cs_database() as db:

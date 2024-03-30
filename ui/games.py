@@ -8,6 +8,7 @@ import datetime
 from backend.game import Game, GID, purchase_game, get_game, play_game
 import backend.game as game
 import backend.collection as collection
+import backend.owns_game as owns_game
 from typing import List, Tuple
 
 
@@ -94,14 +95,13 @@ class AddGameToCollection:
 
     def col_selected(self, b: urwid.Button, col: collection.CollectionID):
         # do we own the game?
-        found_game = False
-        for g in self.library:
-            if self.game.id.id == g.id.id:
-                found_game = True
-                collection.add_game(col, self.game.id)
-                self.switch_menu(
-                    "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
-        if not found_game:
+        is_owned = owns_game.owns_game(self.game.id, self.player.username)
+        if is_owned:
+            collection.add_game(col, self.game.id)
+            print("Game has been added to the collect.")
+            # self.switch_menu(
+            #     "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
+        else:
             print("You don't own this game")
 
 

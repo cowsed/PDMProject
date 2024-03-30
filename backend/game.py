@@ -66,11 +66,11 @@ def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime)
             cursor.execute(query, [gid.id, username, start_time, end_time])
             db.commit()
     except Exception as e:
-        print("play random game error", e)
+        print("play game error", e)
         return
 
 def get_owned_games(username: str) -> List[Game]:
-    query = 'select G.title, G.gameid, G.publisher, G.esrb_rating from "Game" G natural  join "OwnsGame" O where O.username = %s'
+    query = 'select G.title, G.gameid, G.publisher, G.esrb_rating from "Game" G natural  join "OwnsGame" O where O.username = %s order by G.title'
     with cs_database() as db:
         cur = db.cursor()
         cur.execute(query, [username])
