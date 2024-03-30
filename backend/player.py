@@ -3,7 +3,11 @@ import datetime
 from typing import List
 from database import cs_database
 import psycopg2
+from hashlib import pbkdf2_hmac
+from secrets import token_bytes, compare_digest
 
+HASH_ITERATIONS = 500_000
+SALT_LENGTH = 32
 
 class Player:
     """Class for keeping important details of a user"""
@@ -12,15 +16,17 @@ class Player:
     last_name: str
     creation_date: datetime.date
     password: str
+    salt: bytes
     last_online: datetime.date
 
-    def __init__(self, username: str, first_name: str, last_name: str, creation_date: datetime.date, password: str,
+    def __init__(self, username: str, first_name: str, last_name: str, creation_date: datetime.date, password: bytes, salt: bytes,
                  last_online: datetime.date):
         self.username = username
         self.first_name = first_name
         self.last_name = last_name
         self.creation_date = creation_date
         self.password = password
+        self.salt = salt
         self.last_online = last_online
 
     def __repr__(self):
@@ -38,6 +44,12 @@ class Player:
             res = list(map(lambda t: t[0], cur.fetchall()))
 
             return res
+        
+    def test_password(self, password) -> bool:
+        # hash the password
+        hashed = pbkdf2_hmac('sha256', password.encode('utf-8'), self.salt, HASH_ITERATIONS)
+        return compare_digest(hashed, self.password)
+
 
 
 def update_last_online(username: str, last_online: datetime.date):
@@ -57,7 +69,7 @@ def get_player(username: str) -> Optional[Player]:
     try:
         with cs_database() as db:
             cursor = db.cursor()
-            query = 'select first_name, last_name, creation_date, password, last_online from "Player" where username=%s'
+            query = 'select first_name, last_name, creation_date, hashed_password, salt, last_online from "Player" where username=%s'
             cursor.execute(query, [username])
             result = cursor.fetchone()
 
@@ -65,7 +77,7 @@ def get_player(username: str) -> Optional[Player]:
             if result is None:
                 return None
 
-            return Player(username, result[0], result[1], result[2], result[3], result[4])
+            return Player(username, result[0], result[1], result[2], result[3], result[4], result[5])
     except Exception as e:
         print(e)
         # No such user found (or database down)
@@ -143,13 +155,18 @@ def search_player_by_email(email: str, username: str) -> List[str]:
 
 
 def add_player(username: str, first_name: str, last_name: str, password: str, emails: List[str]):
-    query = 'insert into "Player" (username, first_name, last_name, creation_date, password, last_online) values (%s, %s, %s, NOW(), %s, NOW())'
+    query = 'insert into "Player" (username, first_name, last_name, creation_date, hashed_password, hash, last_online) values (%s, %s, %s, NOW(), %s, %s, NOW())'
     email_query = 'insert into "Emails" (username, email) values (%s, %s)'
+
+    # hash the password
+    salt = token_bytes(SALT_LENGTH)
+    hashed = pbkdf2_hmac('sha256', password.encode('utf-8'), salt, HASH_ITERATIONS)
 
     with cs_database() as db:
         try:
             cur = db.cursor()
-            cur.execute(query, [username, first_name, last_name, password])
+            cur.execute(query, [username, first_name, last_name, hashed, salt])
+            # loop through emails, adding them
             for email in emails:
                 cur.execute(email_query, [username, email])
 
@@ -157,4 +174,5 @@ def add_player(username: str, first_name: str, last_name: str, password: str, em
         except psycopg2.errors.UniqueViolation:
             raise DuplicateNameException
 
-        # loop through emails, adding them
+        
+

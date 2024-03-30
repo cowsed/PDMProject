@@ -100,7 +100,7 @@ class LoginPage(urwid.WidgetWrap):
         if pl == None:
             self.login_titile.set_text("Unknown username")
             return
-        if password != pl.password:
+        if not pl.test_password(password):
             self.login_titile.set_text("Incorrect password")
             return
 
