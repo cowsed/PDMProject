@@ -14,6 +14,17 @@ class owns_game:
         self.star_rating = rating
         self.review_text = review
 
+def owns_game(game: GID, username):
+    try:
+        with cs_database() as db:
+            data = (game.id, username)
+            query = 'Select * from "OwnsGame" where WHERE gameid=%s AND username=%s'
+            cursor = db.cursor()
+            cursor.execute(query, data)
+            db.commit()
+    except Exception as e:
+        print("delete rating error", e)
+        return
 
 def add_rating(game: GID, username: str, rating: int, review: str):
     if 0 < rating < 6:
