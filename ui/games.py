@@ -20,7 +20,7 @@ class LogGameTime:
         self.game = get_game(self.gid)
 
         self.back_btn = urwid.Button(
-            "Back to search", self.back_pressed, "back")
+            "Back to search", self.back_pressed)
 
         self.error_text = urwid.Text("")
 
@@ -39,7 +39,7 @@ class LogGameTime:
                                                urwid.Button("Submit", self.submit_pressed)]))
 
     def back_pressed(self, b: urwid.Button):
-        self.swich_menu("back", {})
+        self.switch_menu("back", {})
 
     def submit_pressed(self, b: urwid.Button):
         playtime = 0
