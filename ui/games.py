@@ -72,6 +72,7 @@ class AddGameToCollection:
         self.game: Game = args["game"]
         self.gamelist: List[Game] = args["prevgames"]
 
+        self.library = game.get_owned_games(self.player.username)
         collections = collection.get_owned_collections(self.player.username)
         collection_buttons = [urwid.Button(
             c.title, self.col_selected, c.id) for c in collections]
@@ -92,9 +93,16 @@ class AddGameToCollection:
         self.switch_menu("back", {})
 
     def col_selected(self, b: urwid.Button, col: collection.CollectionID):
-        collection.add_game(col, self.game.id)
-        self.switch_menu(
-            "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
+        # do we own the game?
+        found_game = False
+        for g in self.library:
+            if self.game.id.id == g.id.id:
+                found_game = True
+                collection.add_game(col, self.game.id)
+                self.switch_menu(
+                    "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
+        if not found_game:
+            print("You don't own this game")
 
 
 class AllGameDataPage:
