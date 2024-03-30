@@ -157,11 +157,18 @@ class GameResultsPage:
         self.switch_menu = switch_menu
         self.back_btn = urwid.Button("Back to search", self.pressed,
                                      "back")
-        self.gamelist: List[Game] = args["games"]
+        self.gamelist: List[(Game, str, str, str)] = args["games"]
 
         body = [self.back_btn, urwid.Divider()]
-        for game in self.gamelist:
-            body.append(urwid.Button(game.name, self.pressed, str(game.id.id)))
+        for (game, platform, developers, rating) in self.gamelist:
+            row = urwid.Columns([
+                urwid.Button(game.name, self.pressed, str(game.id.id)),
+                urwid.Text(platform + ""),
+                urwid.Text(developers),
+                urwid.Text(str(round(rating, 2))),
+
+            ], 15)
+            body.append(row)
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)
 
@@ -277,18 +284,18 @@ class GameSearchPage:
         if sort_by in column_map:
             sort_by = column_map[sort_by]
 
-        rating = list(filter(lambda radio: radio.get_state(), self.rgroup))[
+        esrb = list(filter(lambda radio: radio.get_state(), self.rgroup))[
             0].get_label()
-        if rating == "Any":
-            rating = "%"
+        if esrb == "Any":
+            esrb = "%"
 
-        user_rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
+        rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
             0].get_label())  # returns 0, 1, 2, 3, 4, 5
 
-        # print(sort_by, sort_order, rating, user_rating)
+        print(sort_by, sort_order, rating, rating)
         # raise NotImplementedError(
         #     "Not submitting sort order, sort by or rating into search: "+repr(sort_by)+" "+repr(sort_order)+" "+repr(rating)+" "+repr(user_rating))
 
         games = game.search_games(title, platform, (date_start, date_end),
-                                  developer, (price_low, price_high), genre, rating, sort_by, sort_order)
+                                  developer, (price_low, price_high), genre, esrb, rating, sort_by, sort_order)
         self.switch_menu("games.results", {"games": games})
