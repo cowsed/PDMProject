@@ -95,7 +95,6 @@ class AddGameToCollection:
 
     def col_selected(self, b: urwid.Button, col: collection.CollectionID):
         # do we own the game?
-<<<<<<< HEAD
         is_owned = owns_game.owns_game(self.game.id, self.player.username)
         if is_owned:
             collection.add_game(col, self.game.id)
@@ -103,16 +102,6 @@ class AddGameToCollection:
             # self.switch_menu(
             #     "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
         else:
-=======
-        found_game = False
-        for g in self.library:
-            if self.game.id.id == g.id.id:
-                found_game = True
-                collection.add_game(col, self.game.id)
-                self.switch_menu(
-                    "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
-        if not found_game:
->>>>>>> efa7369b63fd1875f658378aa2270dad49a6718e
             print("You don't own this game")
 
 
