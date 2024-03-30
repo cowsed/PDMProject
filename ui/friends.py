@@ -66,7 +66,7 @@ class FriendInfoPage:
         body = [
             urwid.Button("Back", self.back_pressed),
             urwid.Divider(),
-            urwid.Text(repr(self.lookat)),
+            # urwid.Text(repr(self.lookat)),
             urwid.Text(
                 ("You follow " if self.follows else "You do not follow ")+self.lookat.username),
             urwid.Button(
