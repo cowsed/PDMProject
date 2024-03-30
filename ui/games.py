@@ -96,7 +96,7 @@ class AddGameToCollection:
         # do we own the game?
         found_game = False
         for g in self.library:
-            if self.game == g:
+            if self.game.id.id == g.id.id:
                 found_game = True
                 collection.add_game(col, self.game.id)
                 self.switch_menu(
