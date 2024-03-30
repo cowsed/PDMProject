@@ -1,7 +1,7 @@
 from backend.game import GID
 from typing import List, Tuple
 from database import cs_database
-
+from datetime import datetime
 
 class CollectionID:
     id: int
@@ -24,16 +24,31 @@ class Collection:
 
 
 def get_games(id: CollectionID) -> List[Tuple[str, GID]]:
-    query = 'select G.title, G.gameid from "Game" G natural join "CollectionContains" CC  where G.gameid = CC.gameid  and CC.collectionid = %s'
+    query = 'select G.title, G.gameid from "Game" G natural join "CollectionContains" CC  where G.gameid = CC.gameid  and CC.collectionid = %s order by G.title'
     with cs_database() as db:
         cursor = db.cursor()
         cursor.execute(query, [id.id])
         result = cursor.fetchall()
         return [(r[0], GID(r[1])) for r in result]
 
+def play_random_game(id: CollectionID, username: str, start_time: datetime, end_time: datetime):
+    try:
+        query = '''insert into "PlaysGame" values (
+                   (select G.gameid from "Game" G natural join "CollectionContains" CC 
+                   where G.gameid = CC.gameid and CC.collectionid = %s order by random() limit 1),
+                   %s, %s, %s)
+                   '''
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [id.id, username, start_time, end_time])
+            result = cursor.fetchall()
+            return [(r[0], GID(r[1])) for r in result]
+    except Exception as e:
+        print("play random game error", e)
+        return
 
 def get_owned_collections(username: str) -> List[Collection]:
-    query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.username = %s'
+    query = 'select C.title, C.collectionid, C.username, C.visible from "Collection" C where C.username = %s ORDER BY C.title'
     with cs_database() as db:
         cursor = db.cursor()
         cursor.execute(query, [username])
