@@ -58,6 +58,16 @@ def get_game(gid: GID) -> Game:
             raise Exception("No Game found with gameid", gid.id)
         return Game(res[0], gid, res[1], res[2])
 
+def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime):
+    try:
+        query = 'insert into "PlaysGame" values (%s, %s, %s, %s)'
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [gid.id, username, start_time, end_time])
+            db.commit()
+    except Exception as e:
+        print("play random game error", e)
+        return
 
 def get_owned_games(username: str) -> List[Game]:
     query = 'select G.title, G.gameid, G.publisher, G.esrb_rating from "Game" G natural  join "OwnsGame" O where O.username = %s'
