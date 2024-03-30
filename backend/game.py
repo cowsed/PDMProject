@@ -113,7 +113,7 @@ def search_games(
         rating=0,
         sort_column="G.title",
         sort_order="ASC"
-    ) -> List[(Game, str, str, str)]:
+    ) -> List[Tuple[Game, str, str, str]]:
     """
     Returns every game that matches the provided search criteria.
 

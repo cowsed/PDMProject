@@ -165,6 +165,7 @@ class GameResultsPage:
                 urwid.Button(game.name, self.pressed, str(game.id.id)),
                 urwid.Text(platform + ""),
                 urwid.Text(developers),
+                urwid.Text(game.rating),
                 urwid.Text(str(round(rating, 2))),
 
             ], 15)
@@ -291,10 +292,6 @@ class GameSearchPage:
 
         rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
             0].get_label())  # returns 0, 1, 2, 3, 4, 5
-
-        print(sort_by, sort_order, rating, rating)
-        # raise NotImplementedError(
-        #     "Not submitting sort order, sort by or rating into search: "+repr(sort_by)+" "+repr(sort_order)+" "+repr(rating)+" "+repr(user_rating))
 
         games = game.search_games(title, platform, (date_start, date_end),
                                   developer, (price_low, price_high), genre, esrb, rating, sort_by, sort_order)
