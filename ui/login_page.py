@@ -13,7 +13,7 @@ class LoginPage(urwid.WidgetWrap):
 
         self.login_titile = urwid.Text(u"Log In", align=urwid.CENTER)
         self.username_inp = urwid.Edit("Username: ")
-        self.password_inp = urwid.Edit("Password: ")
+        self.password_inp = urwid.Edit("Password: ", mask="*")
         self.login_button = urwid.Button("Submit")
 
         urwid.connect_signal(self.login_button, "click", self.on_login_pressed)
@@ -32,7 +32,7 @@ class LoginPage(urwid.WidgetWrap):
         self.firstname_inp_signup = urwid.Edit("First Name: ")
         self.lastname_inp_signup = urwid.Edit("Last Name: ")
         self.email_inp_signup = urwid.Edit("Email: ")
-        self.password_inp_signup = urwid.Edit("Password: ")
+        self.password_inp_signup = urwid.Edit("Password: ", mask="*")
         self.create_account_button = urwid.Button("Create account")
 
         urwid.connect_signal(self.create_account_button, "click", self.on_signup_pressed)
