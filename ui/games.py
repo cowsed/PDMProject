@@ -95,7 +95,7 @@ class AddGameToCollection:
 
     def col_selected(self, b: urwid.Button, col: collection.CollectionID):
         # do we own the game?
-        is_owned = owns_game.owns_game(self.game.id, self.player.username)
+        is_owned = owns_game.user_owns_game(self.game.id, self.player.username)
         if is_owned:
             collection.add_game(col, self.game.id)
             print("Game has been added to the collect.")
