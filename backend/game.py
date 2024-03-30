@@ -58,6 +58,16 @@ def get_game(gid: GID) -> Game:
             raise Exception("No Game found with gameid", gid.id)
         return Game(res[0], gid, res[1], res[2])
 
+def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime):
+    try:
+        query = 'insert into "PlaysGame" values (%s, %s, %s, %s)'
+        with cs_database() as db:
+            cursor = db.cursor()
+            cursor.execute(query, [gid.id, username, start_time, end_time])
+            db.commit()
+    except Exception as e:
+        print("play random game error", e)
+        return
 
 def get_owned_games(username: str) -> List[Game]:
     query = 'select G.title, G.gameid, G.publisher, G.esrb_rating from "Game" G natural  join "OwnsGame" O where O.username = %s'
@@ -102,7 +112,18 @@ def game_platforms(gid: GID) -> List[Tuple[Platform, float, datetime.date]]:
         return [(Platform(r[0], PlatformID(r[1])), r[2], r[3]) for r in res]
 
 
-def search_games(title="", platform="", release_date_range=(datetime.date(1800, 1, 1), datetime.date.today()), developers="", price_range=(0.0, float('inf')), genre="") -> List[Game]:
+def search_games(
+        title="",
+        platform="",
+        release_date_range=(datetime.date(1800, 1, 1), datetime.date.today()),
+        developers="",
+        price_range=(0.0, float('inf')),
+        genre="",
+        esrb="Everyone",
+        rating=0,
+        sort_column="G.title",
+        sort_order="ASC"
+    ) -> List[Tuple[Game, str, str, str]]:
     """
     Returns every game that matches the provided search criteria.
 
@@ -117,9 +138,17 @@ title : str, default: ""
     developers : str, default: ""
             The search string to compare to each developer each game has.
     price_range : tuple, default: (0.0, float('inf'))
-             The range each returned games' price must fall into (varies by platform release).
+            The range each returned games' price must fall into (varies by platform release).
     genre : str, default: ""
             The search string to compare to each genre each game falls into.
+    esrb : str, default: "Everyone"
+            The ESRB rating to include in the search results.
+    rating: int, default: 0
+            The minimum rating to include in the search results.
+    sort_column: str, default: "G.title"
+            The column by which to sort the search results.
+    sort_order: str, default: "ASC"
+            The direction in which to sort the search results.
 
     Returns
     -------
@@ -131,22 +160,37 @@ title : str, default: ""
     try:
         with cs_database() as db:
             # TODO get reviews, and playtime
-            query = '\
-                SELECT G.title, \
-                        G.gameid, \
-                       (SELECT name FROM "Platform" WHERE platformid=GOP.platformid) AS platform, \
-                       ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid) AS developers, \
-                       G.publisher, \
-                       G.esrb_rating \
-                FROM "Game" G \
-                NATURAL JOIN "GameOnPlatform" GOP \
-                WHERE UPPER(G.title) LIKE UPPER(%s) \
-                  AND UPPER((SELECT name FROM "Platform" WHERE platformid=GOP.platformid)) LIKE UPPER(%s) \
-                  AND GOP.release_date >= %s AND GOP.release_date <= %s \
-                  AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid), \',\')) LIKE UPPER(%s) \
-                  AND GOP.price >= %s AND GOP.price <= %s \
-                  AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT genre_name FROM "Genre" Ge WHERE G.gameid=Ge.gameid), \',\')) LIKE UPPER(%s) \
-            '
+            query = """
+                WITH UR AS (
+                    SELECT
+                        gameid,
+                        AVG(star_rating) as avg_rating
+                        
+                    FROM "OwnsGame"
+                    GROUP BY gameid
+                )
+                SELECT G.title,
+                        G.gameid,
+                       (SELECT name FROM "Platform" WHERE platformid=GOP.platformid) AS platform,
+                       ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid) AS developers,
+                       G.publisher,
+                       G.esrb_rating,
+                       UR.avg_rating
+                FROM "Game" G
+                JOIN "GameOnPlatform" GOP ON GOP.gameid=G.gameid
+                JOIN UR ON UR.gameid=G.gameid
+                WHERE UPPER(G.title) LIKE UPPER(%s)
+                  AND UPPER((SELECT name FROM "Platform" WHERE platformid=GOP.platformid)) LIKE UPPER(%s)
+                  AND GOP.release_date >= %s AND GOP.release_date <= %s
+                  AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid), \',\')) LIKE UPPER(%s)
+                  AND GOP.price >= %s AND GOP.price <= %s
+                  AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT genre_name FROM "Genre" Ge WHERE G.gameid=Ge.gameid), \',\')) LIKE UPPER(%s)
+                  AND COALESCE(UR.avg_rating, 0.0) >= %s
+                  AND UPPER(G.esrb_rating) LIKE UPPER(%s)
+            """
+            # This does not play nicely with parameterization, so it is a dynamic query
+            order_clause = 'ORDER BY ' + sort_column + ' ' + sort_order + ', GOP.release_date ASC'
+            query += order_clause
             cursor = db.cursor()
             cursor.execute(query, ('%' + title + '%',
                                    '%' + platform + '%',
@@ -155,12 +199,24 @@ title : str, default: ""
                                    '%' + developers + '%',
                                    price_range[0],
                                    price_range[1],
-                                   '%' + genre + '%'))
+                                   '%' + genre + '%',
+                                   rating,
+                                   esrb,
+                                   ))
             result = cursor.fetchall()
-            res2 = [Game(g[0], GID(g[1]), g[4], g[5]) for g in result]
+            res2 = [
+                (
+                    Game(g[0], GID(g[1]), g[4], g[5]),
+                    g[2],
+                    g[3],
+                    g[6]
+                )
+                for g in result
+            ]
             return res2
     except Exception as e:
         print(e)
+        raise e
         # No such user found (or database down)
         return None
 
