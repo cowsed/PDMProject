@@ -102,7 +102,17 @@ def game_platforms(gid: GID) -> List[Tuple[Platform, float, datetime.date]]:
         return [(Platform(r[0], PlatformID(r[1])), r[2], r[3]) for r in res]
 
 
-def search_games(title="", platform="", release_date_range=(datetime.date(1800, 1, 1), datetime.date.today()), developers="", price_range=(0.0, float('inf')), genre="") -> List[Game]:
+def search_games(
+        title="",
+        platform="",
+        release_date_range=(datetime.date(1800, 1, 1), datetime.date.today()),
+        developers="",
+        price_range=(0.0, float('inf')),
+        genre="",
+        rating="Everyone",
+        sort_column="title",
+        sort_order="ASC"
+    ) -> List[Game]:
     """
     Returns every game that matches the provided search criteria.
 
@@ -139,14 +149,18 @@ title : str, default: ""
                        G.publisher, \
                        G.esrb_rating \
                 FROM "Game" G \
-                NATURAL JOIN "GameOnPlatform" GOP \
+                JOIN "GameOnPlatform" GOP ON GOP.gameid=G.gameid \
                 WHERE UPPER(G.title) LIKE UPPER(%s) \
                   AND UPPER((SELECT name FROM "Platform" WHERE platformid=GOP.platformid)) LIKE UPPER(%s) \
                   AND GOP.release_date >= %s AND GOP.release_date <= %s \
                   AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT developer FROM "Development" WHERE gameid=G.gameid), \',\')) LIKE UPPER(%s) \
                   AND GOP.price >= %s AND GOP.price <= %s \
                   AND UPPER(ARRAY_TO_STRING(ARRAY(SELECT genre_name FROM "Genre" Ge WHERE G.gameid=Ge.gameid), \',\')) LIKE UPPER(%s) \
+                  AND UPPER(G.esrb_rating) LIKE UPPER(%s) \
             '
+            # This does not play nicely with parameterization, so it is a dynamic query
+            order_clause = 'ORDER BY ' + sort_column + ' ' + sort_order
+            query += order_clause
             cursor = db.cursor()
             cursor.execute(query, ('%' + title + '%',
                                    '%' + platform + '%',
@@ -155,12 +169,15 @@ title : str, default: ""
                                    '%' + developers + '%',
                                    price_range[0],
                                    price_range[1],
-                                   '%' + genre + '%'))
+                                   '%' + genre + '%',
+                                   rating
+                                   ))
             result = cursor.fetchall()
             res2 = [Game(g[0], GID(g[1]), g[4], g[5]) for g in result]
             return res2
     except Exception as e:
         print(e)
+        raise e
         # No such user found (or database down)
         return None
 
