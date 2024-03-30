@@ -95,13 +95,15 @@ class AddGameToCollection:
 
     def col_selected(self, b: urwid.Button, col: collection.CollectionID):
         # do we own the game?
+        found_game = False
         for g in self.library:
             if self.game == g:
+                found_game = True
                 collection.add_game(col, self.game.id)
                 self.switch_menu(
                     "games.data", {"gid": self.game.id, "prev_gamelist": self.gamelist})
-            else:
-                print("You don't own this game")
+        if not found_game:
+            print("You don't own this game")
 
 
 class AllGameDataPage:
