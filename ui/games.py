@@ -157,11 +157,19 @@ class GameResultsPage:
         self.switch_menu = switch_menu
         self.back_btn = urwid.Button("Back to search", self.pressed,
                                      "back")
-        self.gamelist: List[Game] = args["games"]
+        self.gamelist: List[(Game, str, str, str)] = args["games"]
 
         body = [self.back_btn, urwid.Divider()]
-        for game in self.gamelist:
-            body.append(urwid.Button(game.name, self.pressed, str(game.id.id)))
+        for (game, platform, developers, rating) in self.gamelist:
+            row = urwid.Columns([
+                urwid.Button(game.name, self.pressed, str(game.id.id)),
+                urwid.Text(platform + ""),
+                urwid.Text(developers),
+                urwid.Text(game.rating),
+                urwid.Text(str(round(rating, 2))),
+
+            ], 15)
+            body.append(row)
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)
 
@@ -182,7 +190,7 @@ class GameSearchPage:
 
         self.rgroup = []
         self.rating_inp = urwid.Pile(
-            [urwid.Text("Rating:"), urwid.RadioButton(self.rgroup, "Everyone"), urwid.RadioButton(self.rgroup, "Everyone 10+"), urwid.RadioButton(self.rgroup, "Teen"), urwid.RadioButton(self.rgroup, "Mature 17+"), urwid.RadioButton(self.rgroup, "Adults Only"), urwid.RadioButton(self.rgroup, "Rating Pending")])
+            [urwid.Text("Rating:"), urwid.RadioButton(self.rgroup, "Any"), urwid.RadioButton(self.rgroup, "Everyone"), urwid.RadioButton(self.rgroup, "Everyone 10+"), urwid.RadioButton(self.rgroup, "Teen"), urwid.RadioButton(self.rgroup, "Mature 17+"), urwid.RadioButton(self.rgroup, "Adults Only"), urwid.RadioButton(self.rgroup, "Rating Pending")])
 
         self.platform_inp = urwid.Edit("Platform: ")
         self.developer_inp = urwid.Edit("Developer: ")
@@ -219,7 +227,7 @@ class GameSearchPage:
             urwid.Divider(),
             urwid.Text("Search:"),
             urwid.GridFlow([self.title_inp, self.rating_inp,
-                           self.platform_inp, self.developer_inp, self.price_inp, self.date_inp, self.sort_by, self.sort_order], 20, 1, 1, "left")
+                           self.platform_inp, self.developer_inp, self.price_inp, self.date_inp, self.user_rating, self.sort_by, self.sort_order], 20, 1, 1, "left")
 
         ]
 
@@ -268,17 +276,23 @@ class GameSearchPage:
         sort_by = list(
             # returns "Name", "Price", "Genre", or "Release Year"
             filter(lambda radio: radio.get_state(), self.sbgroup))[0].get_label()
+        column_map = {
+            "Name": "G.title",
+            "Price": "GOP.price",
+            "Genre": "Ge.genre_name",
+            "Release Year": "GOP.release_date",
+        }
+        if sort_by in column_map:
+            sort_by = column_map[sort_by]
 
-        rating = list(filter(lambda radio: radio.get_state(), self.rgroup))[
+        esrb = list(filter(lambda radio: radio.get_state(), self.rgroup))[
             0].get_label()
+        if esrb == "Any":
+            esrb = "%"
 
-        user_rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
+        rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
             0].get_label())  # returns 0, 1, 2, 3, 4, 5
 
-        print(sort_by, sort_order, rating, user_rating)
-        raise NotImplementedError(
-            "Not submitting sort order, sort by or rating into search: "+repr(sort_by)+" "+repr(sort_order)+" "+repr(rating)+" "+repr(user_rating))
-
         games = game.search_games(title, platform, (date_start, date_end),
-                                  developer, (price_low, price_high), genre)
+                                  developer, (price_low, price_high), genre, esrb, rating, sort_by, sort_order)
         self.switch_menu("games.results", {"games": games})
