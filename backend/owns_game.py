@@ -14,21 +14,21 @@ class owns_game:
         self.star_rating = rating
         self.review_text = review
 
-def owns_game(game: Game, username):
-    try:
-        with cs_database() as db:
-            data = (game.id, username)
-            query = 'select * from "OwnsGame" where gameid=%s and username=%s'
-            cursor = db.cursor()
-            cursor.execute(query, data)
-            db.commit()
-            rows = cursor.rowcount
-            if rows == 0:
-                return False
-            return True
-    except Exception as e:
-        print("owns game error", e)
-        return
+    def owns_game(game: Game, username):
+        try:
+            with cs_database() as db:
+                data = (game.id, username)
+                query = 'select * from "OwnsGame" where gameid=%s and username=%s'
+                cursor = db.cursor()
+                cursor.execute(query, data)
+                db.commit()
+                rows = cursor.rowcount
+                if rows == 0:
+                    return False
+                return True
+        except Exception as e:
+            print("owns game error", e)
+            return
 
 def add_rating(game: GID, username: str, rating: int, review: str):
     if 0 < rating < 6:
