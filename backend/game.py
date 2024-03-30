@@ -206,7 +206,6 @@ def search_games(
                                    esrb,
                                    ))
             result = cursor.fetchall()
-            print(result[0])
 
             # sort the result by the chosen column
             result = sorted(result, key = lambda i: (i[sort_column] is None, i[sort_column]), reverse = (sort_order == "DESC"))
