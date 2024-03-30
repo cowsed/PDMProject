@@ -61,9 +61,12 @@ def get_game(gid: GID) -> Game:
 def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime):
     try:
         query = 'insert into "PlaysGame" values (%s, %s, %s, %s)'
+        print(start_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
         with cs_database() as db:
             cursor = db.cursor()
-            cursor.execute(query, [gid.id, username, start_time, end_time])
+            cursor.execute(query, [gid.id, username, 
+                                   start_time.strftime('%Y-%m-%d %H:%M:%S.%f'), 
+                                   end_time.strftime('%Y-%m-%d %H:%M:%S.%f')])
             result = cursor.fetchall()
             return [(r[0], GID(r[1])) for r in result]
     except Exception as e:

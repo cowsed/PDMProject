@@ -5,7 +5,7 @@ from typing import Dict
 import urwid
 import datetime
 
-from backend.game import Game, GID, purchase_game, get_game
+from backend.game import Game, GID, purchase_game, get_game, play_game
 import backend.game as game
 import backend.collection as collection
 from typing import List, Tuple
@@ -50,19 +50,18 @@ class LogGameTime:
             return
 
         date_start = datetime.datetime.now()
-        try:
-            date_start_str = self.start_time.get_edit_text()
-            date_start = datetime.datetime.strptime(
-                date_start_str, "%m/%d/%Y %I:%M %p").date()
-        except:
-            self.error_label.set_text(
-                "Could not parse time started. Should be in format '3/28/2024 12:01 pm'")
-            return
+        # try:
+        #     date_start_str = self.start_time.get_edit_text()
+        #     date_start = datetime.datetime.strptime(
+        #         date_start_str, "%m/%d/%Y %I:%M %p").date()
+        # except:
+        #     self.error_label.set_text(
+        #         "Could not parse time started. Should be in format '3/28/2024 12:01 pm'")
+        #     return
 
         date_end = date_start + datetime.timedelta(minutes=int(playtime))
         print(date_start, " ", date_end)
-        raise NotImplementedError(
-            "run backend code with date_end, date_start, self.gid, self.player.username")
+        play_game(self.gid, self.player.username, date_start, date_end)
 
 
 class AddGameToCollection:
@@ -238,14 +237,14 @@ class GameSearchPage:
         date_start_str = self.date_low.get_edit_text()
         date_end_str = self.date_high.get_edit_text()
 
-        try:
-            date_start = datetime.datetime.strptime(
-                date_start_str, "%m/%d/%Y").date()
-            date_end = datetime.datetime.strptime(
-                date_end_str, "%m/%d/%Y").date()
-        except Exception as e:
-            self.error_text.set_text("Date range error: "+repr(e))
-            return
+        # try:
+        #     date_start = datetime.datetime.strptime(
+        #         date_start_str, "%m/%d/%Y").date()
+        #     date_end = datetime.datetime.strptime(
+        #         date_end_str, "%m/%d/%Y").date()
+        # except Exception as e:
+        #     self.error_text.set_text("Date range error: "+repr(e))
+        #     return
 
         price_low = 0
         price_high = float('inf')
