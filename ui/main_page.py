@@ -116,10 +116,8 @@ def begin():
         print("Quitting...")
         return
     global user
-    # user = lp.user
-    user = get_player('richie3000')
+    user = lp.user
     global menu_holder, loop
-    # switch_menu("main", {})
 
     loop = urwid.MainLoop(MainPage(switch_menu, user).widget)
     loop.run()
