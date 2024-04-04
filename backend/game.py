@@ -437,7 +437,7 @@ def remove_game(id: GID):
 def get_most_popular_games_past_90_days():
     try:
         with cs_database() as db:
-            query = '''select gameid, sum(endtime - starttime) as playtime from PlaysGame 
+            query = '''select gameid, sum(end_time - start_time) as playtime from "PlaysGame" 
                        where starttime > now() - interval '10' day
                        group by gameid 
                        order by playtime desc limit 20'''
