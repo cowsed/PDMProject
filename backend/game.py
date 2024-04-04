@@ -433,3 +433,18 @@ def remove_game(id: GID):
     except Exception as e:
         print(e)
         return None
+
+def get_most_popular_games_past_90_days():
+    try:
+        with cs_database() as db:
+            query = '''select gameid, sum(endtime - starttime) as playtime from PlaysGame 
+                       where starttime > now() - interval '10' day
+                       group by gameid 
+                       order by playtime desc limit 20'''
+            cursor = db.cursor()
+            cursor.execute(query)
+            result = cursor.fetchone()
+            return result
+    except Exception as e:
+        print(e)
+        return None
