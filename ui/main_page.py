@@ -4,9 +4,9 @@ from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
-from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection
+from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
-from ui.library import LibraryPage
+from ui.library import LibraryPage, ViewOnePage, ChangeRating
 from ui.friends import FriendsSearchPage, FriendResultsPage, FriendInfoPage
 
 
@@ -52,18 +52,25 @@ def pick_choice(user, args, choice):
         "main": lambda args: MainPage(switch_menu, user),
         "account": lambda args: AccountPage(switch_menu, user, args),
         "account.changename": lambda args: ChangeNamePage(switch_menu, user, args),
-        "games": lambda args: GamesPage(switch_menu, user, args),
+
+        "games": lambda args: GameSearchPage(switch_menu, user, args),
         "games.results": lambda args: GameResultsPage(switch_menu, user, args),
         "games.data": lambda args: AllGameDataPage(switch_menu, user, args),
         "games.add_to_col": lambda args: AddGameToCollection(switch_menu, user, args),
+        "games.log_time": lambda args: LogGameTime(switch_menu, user, args),
+
         "collections": lambda args: CollectionsPage(switch_menu, user, args),
         "collections.new": lambda args: NewCollection(switch_menu, user, args),
         "collections.view": lambda args: ViewCollection(switch_menu, user, args),
+
         "friends": lambda args: FriendsSearchPage(switch_menu, user, args),
         "friends.results": lambda args: FriendResultsPage(switch_menu, user, args),
         "friends.info": lambda args: FriendInfoPage(switch_menu, user, args),
+
         "library": lambda args: LibraryPage(switch_menu, user, args),
-        "library.onegame": lambda args: LibraryPage(switch_menu, user, args),
+        "library.onegame": lambda args: ViewOnePage(switch_menu, user, args),
+        "library.onegame.record_time": lambda args: LogGameTime(switch_menu, user, args),
+        "library.onegame.change_rating": lambda args: ChangeRating(switch_menu, user, args),
     }
     return choices[choice](args)
 
@@ -99,6 +106,7 @@ def switch_menu(towhat: str, args: Dict):
 
 
 def begin():
+    print('\r\n'*100)  # clear the screen
     lp = LoginPage()
     lploop = urwid.MainLoop(urwid.Filler(
         urwid.Padding(lp.widget, urwid.CENTER)))
