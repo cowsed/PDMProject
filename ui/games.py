@@ -153,9 +153,11 @@ class AllGameDataPage:
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
             self.switch_menu("games.results", {"games": self.prev_games})
+            return
         if b == self.add_to_collection_btn:
             self.switch_menu("games.add_to_col", {
                              "prevgames": self.prev_games, "game": self.game})
+            return
 
 
 class GameResultsPage:
@@ -183,6 +185,7 @@ class GameResultsPage:
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
             self.switch_menu("games", {})
+            return
 
         self.switch_menu("games.data", {"gid": GID(
             int(dat)), "prev_gamelist": self.gamelist})
