@@ -1,4 +1,6 @@
-from backend.player import Player
+import random
+
+from backend.player import Player, get_top_genre, get_top_developer
 import backend.platform as platform
 from backend.platform import Platform
 from typing import Dict
@@ -121,7 +123,7 @@ class AllGameDataPage:
             "Add to collection", self.pressed, "add")
 
         ps: List[Tuple[Platform, float, datetime.datetime]
-                 ] = game.game_platforms(self.game.id)
+        ] = game.game_platforms(self.game.id)
 
         def to_button(t: Tuple[Platform, float, datetime.datetime]): return urwid.Button(
             f"%s - $%s - %s  %s" % (t[0].name, t[1], t[2], "✅" if True else "🚫"), self.purchase_pressed)
@@ -131,9 +133,9 @@ class AllGameDataPage:
 
         body = [self.back_btn,
                 urwid.Divider(),
-                urwid.Text("Game: "+self.game.name),
-                urwid.Text("Publisher: "+self.game.publisher),
-                urwid.Text("Rating: "+self.game.rating),
+                urwid.Text("Game: " + self.game.name),
+                urwid.Text("Publisher: " + self.game.publisher),
+                urwid.Text("Rating: " + self.game.rating),
                 urwid.Divider(),
                 self.add_to_collection_btn,
                 urwid.Divider(),
@@ -148,14 +150,21 @@ class AllGameDataPage:
 
     def purchase_pressed(self, b: urwid.Button):
         purchase_game(self.player.username, self.game.id)
+        if not self.prev_games:
+            self.switch_menu("main", {})
         self.switch_menu("games.results", {"games": self.prev_games})
 
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
+            if not self.prev_games:
+                self.switch_menu("main", {})
             self.switch_menu("games.results", {"games": self.prev_games})
         if b == self.add_to_collection_btn:
+            if not self.prev_games:
+                self.switch_menu("games.add_to_col", {
+                    "prevgames": "main", "game": self.game})
             self.switch_menu("games.add_to_col", {
-                             "prevgames": self.prev_games, "game": self.game})
+                "prevgames": self.prev_games, "game": self.game})
 
 
 class GameResultsPage:
@@ -197,7 +206,10 @@ class GameSearchPage:
 
         self.rgroup = []
         self.rating_inp = urwid.Pile(
-            [urwid.Text("Rating:"), urwid.RadioButton(self.rgroup, "Any"), urwid.RadioButton(self.rgroup, "Everyone"), urwid.RadioButton(self.rgroup, "Everyone 10+"), urwid.RadioButton(self.rgroup, "Teen"), urwid.RadioButton(self.rgroup, "Mature 17+"), urwid.RadioButton(self.rgroup, "Adults Only"), urwid.RadioButton(self.rgroup, "Rating Pending")])
+            [urwid.Text("Rating:"), urwid.RadioButton(self.rgroup, "Any"), urwid.RadioButton(self.rgroup, "Everyone"),
+             urwid.RadioButton(self.rgroup, "Everyone 10+"), urwid.RadioButton(self.rgroup, "Teen"),
+             urwid.RadioButton(self.rgroup, "Mature 17+"), urwid.RadioButton(self.rgroup, "Adults Only"),
+             urwid.RadioButton(self.rgroup, "Rating Pending")])
 
         self.platform_inp = urwid.Edit("Platform: ")
         self.developer_inp = urwid.Edit("Developer: ")
@@ -215,15 +227,19 @@ class GameSearchPage:
 
         self.sbgroup = []
         self.sort_by = urwid.Pile(
-            [urwid.Text("Sort By")]+[urwid.RadioButton(self.sbgroup, text) for text in ["Name", "Price", "Genre", "Release Year"]])
+            [urwid.Text("Sort By")] + [urwid.RadioButton(self.sbgroup, text) for text in
+                                       ["Name", "Price", "Genre", "Release Year"]])
 
         self.sogroup = []
         self.sort_order = urwid.Pile(
-            [urwid.Text("Sort Order")]+[urwid.RadioButton(self.sogroup, text) for text in ["ASC", "DESC"]])
+            [urwid.Text("Sort Order")] + [urwid.RadioButton(self.sogroup, text) for text in ["ASC", "DESC"]])
 
         self.rate_group = []
-        self.user_rating = urwid.Pile([urwid.Text("Rating")]+[urwid.RadioButton(self.rate_group, text, user_data=num)
-                                      for (text, num) in zip([">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"], [0, 1, 2, 3, 4, 5])])
+        self.user_rating = urwid.Pile([urwid.Text("Rating")] + [urwid.RadioButton(self.rate_group, text, user_data=num)
+                                                                for (text, num) in
+                                                                zip([">= 0 stars", ">= 1 star", ">= 2 stars",
+                                                                     ">= 3 stars", ">= 4 stars", "5 stars"],
+                                                                    [0, 1, 2, 3, 4, 5])])
 
         self.error_text = urwid.Text("")
         parts = [
@@ -234,7 +250,8 @@ class GameSearchPage:
             urwid.Divider(),
             urwid.Text("Search:"),
             urwid.GridFlow([self.title_inp, self.rating_inp,
-                           self.platform_inp, self.developer_inp, self.price_inp, self.date_inp, self.user_rating, self.sort_by, self.sort_order], 20, 1, 1, "left")
+                            self.platform_inp, self.developer_inp, self.price_inp, self.date_inp, self.user_rating,
+                            self.sort_by, self.sort_order], 20, 1, 1, "left")
 
         ]
 
@@ -259,7 +276,7 @@ class GameSearchPage:
             date_end = datetime.datetime.strptime(
                 date_end_str, "%m/%d/%Y").date()
         except Exception as e:
-            self.error_text.set_text("Date range error: "+repr(e))
+            self.error_text.set_text("Date range error: " + repr(e))
             return
 
         price_low = 0
@@ -297,9 +314,73 @@ class GameSearchPage:
         if esrb == "Any":
             esrb = "%"
 
-        rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(list(filter(lambda radio: radio.get_state(), self.rate_group))[
-            0].get_label())  # returns 0, 1, 2, 3, 4, 5
+        rating = [">= 0 stars", ">= 1 star", ">= 2 stars", ">= 3 stars", ">= 4 stars", "5 stars"].index(
+            list(filter(lambda radio: radio.get_state(), self.rate_group))[
+                0].get_label())  # returns 0, 1, 2, 3, 4, 5
 
         games = game.search_games(title, platform, (date_start, date_end),
                                   developer, (price_low, price_high), genre, esrb, rating, sort_by, sort_order)
         self.switch_menu("games.results", {"games": games})
+
+
+class GameRecommendationPage:
+    def __init__(self, switch_menu, player: Player, args: Dict):
+        self.switch_menu = switch_menu
+        self.player = player
+        self.genre = get_top_genre(player.username)
+        self.developer = get_top_developer(player.username)
+        self.back_btn = urwid.Button("Back", self.back)
+        body = [urwid.Text("** Welcome to \"For You\" **\nRecommendations for " + player.username),
+                urwid.Divider(),
+                urwid.Text("Games based off your favourite genre, " + self.genre)]
+
+        for g in self.get_random_genre():
+            body.append(urwid.Button(g.name, self.pressed, g.id))
+
+        body.append((urwid.Divider()))
+
+        body.append(urwid.Text("Games based off your favourite developer, " + self.developer))
+        for g in self.get_random_developer():
+            body.append(urwid.Button(g.name, self.pressed, g.id))
+
+        body.append(self.back_btn)
+
+        pile = urwid.Pile(body)
+        self.widget = urwid.Filler(pile)
+
+    # Get 3 random games based off of favourite genre and developer that aren't owned
+    def get_random_genre(self) -> List[Game]:
+        # all games from genre that player doesn't own
+        ids = game.get_games_from_genre(self.genre)
+        for i in game.get_games_from_genre(self.genre):
+            if game.do_i_own_game(self.player.username, i) is False:
+                ids.append(i)
+        if len(ids) < 3:
+            res = ids
+        else:
+            res = random.sample(ids, 3)
+        games = []
+        for i in res:
+            games.append(get_game(i))
+        return games
+
+    def get_random_developer(self) -> List[Game]:
+        # all games from developer that player doesn't own
+        ids = []
+        for i in game.get_games_from_developer(self.developer):
+            if game.do_i_own_game(self.player.username, i) is False:
+                ids.append(i)
+        if len(ids) < 3:
+            res = ids
+        else:
+            res = random.sample(ids, 3)
+        games = []
+        for i in res:
+            games.append(get_game(i))
+        return games
+
+    def pressed(self, b: urwid.Button, dat: GID):
+        self.switch_menu("games.data", {"gid": dat, "prev_gamelist": False})
+
+    def back(self, b: urwid.Button):
+        self.switch_menu("main", {})

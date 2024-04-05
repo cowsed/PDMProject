@@ -1,6 +1,8 @@
 from typing import Optional
 import datetime
 from typing import List
+
+from backend import game
 from database import cs_database
 import psycopg2
 from hashlib import pbkdf2_hmac
@@ -8,6 +10,7 @@ from secrets import token_bytes, compare_digest
 
 HASH_ITERATIONS = 500_000
 SALT_LENGTH = 32
+
 
 class Player:
     """Class for keeping important details of a user"""
@@ -19,7 +22,8 @@ class Player:
     salt: bytes
     last_online: datetime.date
 
-    def __init__(self, username: str, first_name: str, last_name: str, creation_date: datetime.date, password: bytes, salt: bytes,
+    def __init__(self, username: str, first_name: str, last_name: str, creation_date: datetime.date, password: bytes,
+                 salt: bytes,
                  last_online: datetime.date):
         self.username = username
         self.first_name = first_name
@@ -33,9 +37,6 @@ class Player:
         return "Player (%s, %s, %s, %s, %s, %s)" % (
             self.username, self.first_name, self.last_name, self.creation_date, self.password, self.last_online)
 
-    def get_platforms_owned(self):
-        raise NotImplementedError
-
     def get_emails(self) -> List[str]:
         with cs_database() as db:
             cur = db.cursor()
@@ -44,12 +45,11 @@ class Player:
             res = list(map(lambda t: t[0], cur.fetchall()))
 
             return res
-        
+
     def test_password(self, password) -> bool:
         # hash the password
         hashed = pbkdf2_hmac('sha256', password.encode('utf-8'), self.salt, HASH_ITERATIONS)
         return compare_digest(hashed, self.password)
-
 
 
 def update_last_online(username: str, last_online: datetime.date):
@@ -174,5 +174,56 @@ def add_player(username: str, first_name: str, last_name: str, password: str, em
         except psycopg2.errors.UniqueViolation:
             raise DuplicateNameException
 
-        
 
+def get_top_genre(username: str):
+    # List of games a user owns
+    games = game.get_owned_games(username)
+    # List of game ids a user owns
+    ids = []
+    for g in games:
+        ids.append(g.id.id)
+    placeholder = ', '.join(map(str, ids))
+    query = f'SELECT mode() WITHIN GROUP (ORDER BY genre_name) FROM "Genre" WHERE gameid IN ({placeholder})'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query)
+            res = cur.fetchone()
+            return res[0]
+        except Exception as e:
+            print("get top genre failed", e)
+            raise e
+
+
+def get_owned_platforms(username: str):
+    query = 'SELECT name FROM "Platform" WHERE platformid IN ' \
+            '(SELECT platformid FROM "OwnsPlatform" WHERE username = %s)'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query, [username])
+            res = cur.fetchall()
+            return [val[0] for val in res]
+        except Exception as e:
+            print("get top developer failed", e)
+            raise e
+
+
+def get_top_developer(username: str):
+    # List of games a user owns
+    games = game.get_owned_games(username)
+    # List of game ids a user owns
+    ids = []
+    for g in games:
+        ids.append(g.id.id)
+    placeholder = ', '.join(map(str, ids))
+    query = f'SELECT mode() WITHIN GROUP (ORDER BY developer) FROM "Development" WHERE gameid IN ({placeholder})'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query)
+            res = cur.fetchone()
+            return res[0]
+        except Exception as e:
+            print("get top developer failed", e)
+            raise e
