@@ -438,11 +438,26 @@ def get_most_popular_games_past_90_days():
     try:
         with cs_database() as db:
             query = '''select gameid, sum(end_time - start_time) as playtime from "PlaysGame" 
-                       where starttime > now() - interval '10' day
+                       where starttime > now() - interval '90' day
                        group by gameid 
                        order by playtime desc limit 20'''
             cursor = db.cursor()
             cursor.execute(query)
+            result = cursor.fetchone()
+            return result
+    except Exception as e:
+        print(e)
+        return None
+
+def get_most_popular_games_by_following(username: str):
+    try:
+        with cs_database() as db:
+            query = '''select pg.gameid, sum(pg.end_time - pg.start_time) as play_time from "PlaysGame" as pg
+                       where pg.username in (select f.friend from "Friends" as f where f.username = %s)
+                       group by pg.gameid
+                       order by play_time desc limit 20'''
+            cursor = db.cursor()
+            cursor.execute(query, username)
             result = cursor.fetchone()
             return result
     except Exception as e:
