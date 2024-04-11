@@ -49,66 +49,7 @@ class MainPage():
         pass
 
 
-next_menu = "main"
-next_args = {}
-history = []
-user: Player | None = None
-
-
-def switch_menu(towhat: str, args: Dict, refresh_user: bool = False):
-    global user, next_menu, next_args, history
-    if refresh_user:
-        user = get_player(user.username)
-
-    if towhat == "back":
-        if len(history) > 0:
-            next_menu = history[-1][0]
-            next_args = history[-1][1]
-            history = history[:-1]
-        else:
-            next_menu = "main"
-            next_args = {}
-    else:
-        history.append((next_menu, next_args))
-        next_menu = towhat
-        next_args = args
-
-    raise urwid.ExitMainLoop()
-
-
-palette = [
-    ("body", "black", "light gray", "standout"),
-    ("header", "white", "dark red", "bold"),
-    ("screen edge", "light blue", "dark cyan"),
-    ("main shadow", "dark gray", "black"),
-    ("line", "black", "light gray", "standout"),
-    ("bg background", "light gray", "black"),
-    ("bg 1", "black", "dark blue", "standout"),
-    ("bg 1 smooth", "dark blue", "black"),
-    ("bg 2", "black", "dark cyan", "standout"),
-    ("bg 2 smooth", "dark cyan", "black"),
-    ("button normal", "light gray", "dark blue", "standout"),
-    ("button select", "white", "dark green"),
-    ("line", "black", "light gray", "standout"),
-    ("pg normal", "white", "black", "standout"),
-    ("pg complete", "white", "dark magenta"),
-    ("pg smooth", "dark magenta", "black"),
-]
-
-
-def begin():
-    print("\r\n"*20)  # clear the screen
-    lp = LoginPage()
-    loop = urwid.MainLoop(urwid.Filler(urwid.Padding(lp.widget, urwid.CENTER)))
-    loop.run()
-
-    if lp.user == None:
-        print("Quitting...")
-        return
-    global user
-    user = lp.user
-
-    menu = MainPage(switch_menu, lp.user)
+def pick_choice(user, args, choice):
     choices = {
         "main": lambda args: MainPage(switch_menu, user),
         "account": lambda args: AccountPage(switch_menu, user, args),
@@ -135,17 +76,52 @@ def begin():
         "library.onegame.record_time": lambda args: LogGameTime(switch_menu, user, args),
         "library.onegame.change_rating": lambda args: ChangeRating(switch_menu, user, args),
     }
+    return choices[choice](args)
 
-    while (1):
-        if next_menu == "quit":
-            return
-        try:
-            menu = choices[next_menu]
-        except KeyError:
-            print("Invalid menu item:", next_menu)
-            return
 
-        new_widget = menu(next_args).widget
+menu_holder = urwid.Filler(urwid.Text("Loading..."))
+user = None
+history = []
 
-        loop = urwid.MainLoop(new_widget, palette)
-        loop.run()
+
+loop: None | urwid.MainLoop = None
+
+
+def switch_menu(towhat: str, args: Dict):
+    global history, menu_holder
+
+    if towhat == "quit":
+        raise urwid.ExitMainLoop()
+
+    if towhat == "back":
+        if len(history) > 0:
+            history.pop()  # remove the current menu so you dont go in circles
+            menu_name = history[-1][0]
+            menu_args = history[-1][1]
+            loop.widget = urwid.Padding(pick_choice(
+                user, menu_args, menu_name).widget)
+            history = history[:-1]
+        else:
+            loop.widget = pick_choice(user, {}, "main").widget
+
+    else:
+        history.append((towhat, args))
+        loop.widget = pick_choice(user, args, towhat).widget
+
+
+def begin():
+    print('\r\n'*100)  # clear the screen
+    lp = LoginPage()
+    lploop = urwid.MainLoop(urwid.Filler(
+        urwid.Padding(lp.widget, urwid.CENTER)))
+    lploop.run()
+
+    if lp.user == None:
+        print("Quitting...")
+        return
+    global user
+    user = lp.user
+    global menu_holder, loop
+
+    loop = urwid.MainLoop(MainPage(switch_menu, user).widget)
+    loop.run()

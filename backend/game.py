@@ -130,32 +130,32 @@ def search_games(
 
     Parameters
 	----------
-	title : str, default: ""
-    The search string to compare to each video game title.
-    platform : str, default: ""
-            The search string to compare to each platform title.
-    release_date_range : tuple, default: ( datetime.date(1800, 1, 1), datetime.date.today() )
-    The range each returned games' release date must fall into.
-    developers : str, default: ""
-            The search string to compare to each developer each game has.
-    price_range : tuple, default: (0.0, float('inf'))
-            The range each returned games' price must fall into (varies by platform release).
-    genre : str, default: ""
-            The search string to compare to each genre each game falls into.
-    esrb : str, default: "Everyone"
-            The ESRB rating to include in the search results.
+	title: str, default: ""
+        The search string to compare to each video game title.
+    platform: str, default: ""
+        The search string to compare to each platform title.
+    release_date_range: tuple, default: ( datetime.date(1800, 1, 1), datetime.date.today() )
+        The range each returned games' release date must fall into.
+    developers: str, default: ""
+        The search string to compare to each developer each game has.
+    price_range: tuple, default: (0.0, float('inf'))
+        The range each returned games' price must fall into (varies by platform release).
+    genre: str, default: ""
+        The search string to compare to each genre each game falls into.
+    esrb: str, default: "Everyone"
+        The ESRB rating to include in the search results.
     rating: int, default: 0
-            The minimum rating to include in the search results.
+        The minimum rating to include in the search results.
     sort_column: int, default: 0
-            The column returned by the query by which to sort the search results.
+        The column returned by the query by which to sort the search results.
     sort_order: str, default: "ASC"
-            The direction in which to sort the search results.
+        The direction in which to sort the search results.
 
     Returns
     -------
     list
-            A list of each matched game's name, platforms, developers, publisher, playtime, and ratings.
-            Each game release on a different platform is considered a different game and listed separately.
+        A list of each matched game's name, platforms, developers, publisher, playtime, and ratings.
+        Each game release on a different platform is considered a different game and listed separately.
     """
 
     try:
