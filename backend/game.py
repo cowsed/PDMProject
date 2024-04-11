@@ -438,7 +438,7 @@ def get_most_popular_games_past_90_days():
     try:
         with cs_database() as db:
             query = '''select gameid, sum(end_time - start_time) as playtime from "PlaysGame" 
-                       where starttime > now() - interval '90' day
+                       where start_time > now() - interval '90' day
                        group by gameid 
                        order by playtime desc limit 20'''
             cursor = db.cursor()
@@ -458,6 +458,24 @@ def get_most_popular_games_by_following(username: str):
                        order by play_time desc limit 20'''
             cursor = db.cursor()
             cursor.execute(query, username)
+            result = cursor.fetchone()
+            return result
+    except Exception as e:
+        print(e)
+        return None
+    
+def get_top_10_releases_of_month():
+    try:
+        with cs_database() as db:
+            query = '''select gop.gameid, gop.platformid, sum(pg.end_time - pg.start_time) as play_time from "GameOnPlatform" as gop
+                       inner join "PlaysGame" as pg on gop.gameid = pg.gameid
+                       where date_part('month', pg.start_time) = date_part('month', now())
+                       and date_part('month', gop.release_date) = date_part('month', now())
+                       and date_part('year', gop.release_date) = date_part('year', now())
+                       group by gop.platformid, gop.gameid
+                       order by play_time desc limit 10'''
+            cursor = db.cursor()
+            cursor.execute(query)
             result = cursor.fetchone()
             return result
     except Exception as e:
