@@ -152,18 +152,21 @@ class AllGameDataPage:
         purchase_game(self.player.username, self.game.id)
         if not self.prev_games:
             self.switch_menu("main", {})
+            return
         self.switch_menu("games.results", {"games": self.prev_games})
 
     def pressed(self, b: urwid.Button, dat: str):
         if b == self.back_btn:
             if not self.prev_games:
                 self.switch_menu("main", {})
+                return
             self.switch_menu("games.results", {"games": self.prev_games})
             return
         if b == self.add_to_collection_btn:
             if not self.prev_games:
                 self.switch_menu("games.add_to_col", {
                     "prevgames": "main", "game": self.game})
+                return
             self.switch_menu("games.add_to_col", {
                              "prevgames": self.prev_games, "game": self.game})
             return
@@ -384,6 +387,7 @@ class GameRecommendationPage:
 
     def pressed(self, b: urwid.Button, dat: GID):
         self.switch_menu("games.data", {"gid": dat, "prev_gamelist": False})
+
 
     def back(self, b: urwid.Button):
         self.switch_menu("main", {})
