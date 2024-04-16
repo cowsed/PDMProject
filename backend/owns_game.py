@@ -14,7 +14,7 @@ class owns_game:
         self.star_rating = rating
         self.review_text = review
 
-def owns_game(game: Game, username):
+def user_owns_game(game: Game, username):
     try:
         with cs_database() as db:
             data = (game.id, username)

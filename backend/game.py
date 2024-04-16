@@ -58,6 +58,7 @@ def get_game(gid: GID) -> Game:
             raise Exception("No Game found with gameid", gid.id)
         return Game(res[0], gid, res[1], res[2])
 
+
 def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime):
     try:
         query = 'insert into "PlaysGame" values (%s, %s, %s, %s)'
@@ -129,32 +130,32 @@ def search_games(
 
     Parameters
 	----------
-	title : str, default: ""
-    The search string to compare to each video game title.
-    platform : str, default: ""
-            The search string to compare to each platform title.
-    release_date_range : tuple, default: ( datetime.date(1800, 1, 1), datetime.date.today() )
-    The range each returned games' release date must fall into.
-    developers : str, default: ""
-            The search string to compare to each developer each game has.
-    price_range : tuple, default: (0.0, float('inf'))
-            The range each returned games' price must fall into (varies by platform release).
-    genre : str, default: ""
-            The search string to compare to each genre each game falls into.
-    esrb : str, default: "Everyone"
-            The ESRB rating to include in the search results.
+	title: str, default: ""
+        The search string to compare to each video game title.
+    platform: str, default: ""
+        The search string to compare to each platform title.
+    release_date_range: tuple, default: ( datetime.date(1800, 1, 1), datetime.date.today() )
+        The range each returned games' release date must fall into.
+    developers: str, default: ""
+        The search string to compare to each developer each game has.
+    price_range: tuple, default: (0.0, float('inf'))
+        The range each returned games' price must fall into (varies by platform release).
+    genre: str, default: ""
+        The search string to compare to each genre each game falls into.
+    esrb: str, default: "Everyone"
+        The ESRB rating to include in the search results.
     rating: int, default: 0
-            The minimum rating to include in the search results.
+        The minimum rating to include in the search results.
     sort_column: int, default: 0
-            The column returned by the query by which to sort the search results.
+        The column returned by the query by which to sort the search results.
     sort_order: str, default: "ASC"
-            The direction in which to sort the search results.
+        The direction in which to sort the search results.
 
     Returns
     -------
     list
-            A list of each matched game's name, platforms, developers, publisher, playtime, and ratings.
-            Each game release on a different platform is considered a different game and listed separately.
+        A list of each matched game's name, platforms, developers, publisher, playtime, and ratings.
+        Each game release on a different platform is considered a different game and listed separately.
     """
 
     try:
@@ -287,6 +288,38 @@ def get_all_game_on_platform():
         print(e)
         # No such user found (or database down)
         return None
+
+
+def get_games_from_developer(developer: str):
+    query = 'SELECT gameid FROM "Development" WHERE developer = %s'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query, [developer])
+            res = cur.fetchall()
+            ids = []
+            for val in res:
+                ids.append(GID(val[0]))
+            return ids
+        except Exception as e:
+            print("get games from developer failed", e)
+            raise e
+
+
+def get_games_from_genre(genre: str):
+    query = 'SELECT gameid FROM "Genre" WHERE genre_name = %s'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query, [genre])
+            res = cur.fetchall()
+            ids = []
+            for val in res:
+                ids.append(GID(val[0]))
+            return ids
+        except Exception as e:
+            print("get games from genre failed", e)
+            raise e
 
 
 def add_game(title: str, esrb_rating: str, publisher: str):

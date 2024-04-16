@@ -1,6 +1,6 @@
 import urwid
 from typing import Dict
-from backend.player import Player, change_names
+from backend.player import Player, change_names, get_top_genre, get_top_developer, get_owned_platforms
 
 
 class AccountPage:
@@ -12,6 +12,7 @@ class AccountPage:
                 urwid.Divider(),
                 urwid.Text("Last Online: %s" % player.last_online),
                 urwid.Text("Account Created: %s" % player.creation_date),
+                urwid.Text("Owned platform: " + str(get_owned_platforms(player.username))),
                 urwid.Divider(), ]
 
         for c in ["Change Name", "Back"]:
