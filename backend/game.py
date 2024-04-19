@@ -497,7 +497,7 @@ def get_most_popular_games_by_following(username: str):
         print(e)
         return None
     
-def get_top_10_releases_of_month():
+def get_top_5_releases_of_month():
     try:
         with cs_database() as db:
             query = '''select gop.gameid, gop.platformid, sum(pg.end_time - pg.start_time) as play_time from "GameOnPlatform" as gop
@@ -506,7 +506,7 @@ def get_top_10_releases_of_month():
                        and date_part('month', gop.release_date) = date_part('month', now())
                        and date_part('year', gop.release_date) = date_part('year', now())
                        group by gop.platformid, gop.gameid
-                       order by play_time desc limit 10'''
+                       order by play_time desc limit 5'''
             cursor = db.cursor()
             cursor.execute(query)
             result = cursor.fetchone()

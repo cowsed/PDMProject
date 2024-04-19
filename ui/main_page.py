@@ -4,7 +4,7 @@ from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
-from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime, GameRecommendationPage
+from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime, MostPopularIn90DayPage
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
 from ui.library import LibraryPage, ViewOnePage, ChangeRating
 from ui.friends import FriendsSearchPage, FriendResultsPage, FriendInfoPage
@@ -61,7 +61,7 @@ def pick_choice(user, args, choice):
         "games.add_to_col": lambda args: AddGameToCollection(switch_menu, user, args),
         "games.log_time": lambda args: LogGameTime(switch_menu, user, args),
 
-        "recommendations": lambda args: GameRecommendationPage(switch_menu, user, args),
+        "recommendations": lambda args: MostPopularIn90DayPage(switch_menu, user, args),
 
         "collections": lambda args: CollectionsPage(switch_menu, user, args),
         "collections.new": lambda args: NewCollection(switch_menu, user, args),
