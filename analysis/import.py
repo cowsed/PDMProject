@@ -8,16 +8,22 @@ from database import local_database, cs_database
 from psycopg2 import sql
 from psycopg2.extras import execute_values
 import re
+import string
 
 
 def main():
     with local_database() as db:
         cursor = db.cursor()
+        
         # delete local tables/ setup empty ones
-        # reset_tables(cursor)
+        reset_tables(cursor)
+        
         # copy data from starbug
-        # import_db(cursor)
-        bolster_users(cursor, 2000)
+        import_db(cursor)
+        
+        # Create users until there are enough
+        bolster_users(cursor, 3000)
+        
         # copy in data from datasets
         import_csvs(cursor)
 
@@ -44,7 +50,6 @@ def import_db(cursor):
     cursor.execute(query)
     tables = cursor.fetchall()
     tables.sort(key=cmp_to_key(table_cmp))
-    print(tables)
     username = getpass.getpass('Enter your username:')
     password = getpass.getpass('Enter your password:')
     with cs_database(username, password) as cs_db:
@@ -87,6 +92,15 @@ def import_csvs(cursor):
     # IMDB: ESRB, Genre
     # Gamespot: Aggregate Ratings (Not sure what we can do with this)
 
+    # Create the game map
+    gamemap = {}
+    cursor.execute('SELECT title FROM "Game"')
+    games = cursor.fetchall()
+    for game in games:
+        game = game[0]
+        mapped_game =  prepare_title(game)
+        gamemap[mapped_game] = game
+
     # Steam
     print("Importing Steam data...")
     with open('datasets/steam-200k.csv', newline='') as csvfile:
@@ -104,6 +118,12 @@ def import_csvs(cursor):
         for row in csvreader:
             # Match to existing game
             game_name = row[1]
+
+            # if there is a mapping for this game, rename it!
+            mapped_game = prepare_title(game_name)
+            if mapped_game in gamemap:
+                game_name = gamemap[mapped_game]
+                
             cursor.execute('SELECT gameid FROM "Game" WHERE title=%s', [game_name])
             game_id = cursor.fetchone()
             
@@ -153,6 +173,12 @@ def import_csvs(cursor):
         for row in csvreader:
             # Match to existing game
             game_name = row[1]
+
+            # if there is a mapping for this game, rename it!
+            mapped_game = prepare_title(game_name)
+            if mapped_game in gamemap:
+                game_name = gamemap[mapped_game]
+            
             cursor.execute('SELECT gameid FROM "Game" WHERE title=%s', [game_name])
             game_id = cursor.fetchone()
             
@@ -193,16 +219,6 @@ def import_csvs(cursor):
 
         if len(failed_to_match) != 0:
             print("IMDB data failed to match games:", len(failed_to_match), "Failed matches!")
-
-    
-    # Gamespot
-    # For each row in the csv, insert that review into the db for an existing user
-    # if there are no more existing users, move on
-    # cursor.execute("")
-    # with open('datasets/gamespot.csv', newline='') as csvfile:
-    #     spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-    #     for row in islice(spamreader,0,4):
-    #         print(row)
             
 
 def bolster_users(cursor, count):
@@ -245,7 +261,11 @@ def bolster_users(cursor, count):
             usercount += 1
             if usercount > count:
                 break
-        
+
+def prepare_title(title):
+    title = title.lower()
+    title = title.translate(str.maketrans('', '', string.punctuation))
+    return title
 
 if __name__ == '__main__':
     main()
