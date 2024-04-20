@@ -344,6 +344,9 @@ class MostPopularIn90DayPage:
 
     def back_pressed(self, b: urwid.Button):
         self.switch_menu("back", {})
+
+    def pressed(self, buttone, id):
+        pass # implement this
     
 class GameRecommendationPage:
     def __init__(self, switch_menu, player: Player, args: Dict):

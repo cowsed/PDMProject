@@ -470,14 +470,21 @@ def remove_game(id: GID):
 def get_most_popular_games_past_90_days():
     try:
         with cs_database() as db:
-            query = '''select gameid, sum(end_time - start_time) as playtime from "PlaysGame" 
-                       where start_time > now() - interval '90' day
-                       group by gameid 
+            query = '''SELECT
+                            (SELECT title FROM "Game" where gameid=PG.gameid),
+                            PG.gameid,
+                            (SELECT publisher FROM "Game" where gameid=PG.gameid),
+                            (SELECT esrb_rating FROM "Game" where gameid=PG.gameid),
+                            sum(end_time - start_time) as playtime
+                       From "PlaysGame" PG
+                       where PG.start_time > now() - interval '90' day
+                       group by PG.gameid 
                        order by playtime desc limit 20'''
             cursor = db.cursor()
             cursor.execute(query)
-            result = cursor.fetchone()
-            return result
+            data = cursor.fetchall()
+            res = [Game(res[0], res[1], res[2], res[3]) for res in data]
+            return res
     except Exception as e:
         print(e)
         return None
