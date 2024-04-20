@@ -337,7 +337,7 @@ class MostPopularIn90DayPage:
                 urwid.Divider()]
 
         for g in game.get_most_popular_games_past_90_days():
-            body.append(urwid.Button(g.name, self.pressed, g.id))
+            body.append(urwid.Button(g[0], g[1], g[2]))
 
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)

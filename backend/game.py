@@ -470,13 +470,16 @@ def remove_game(id: GID):
 def get_most_popular_games_past_90_days():
     try:
         with cs_database() as db:
-            query = '''select gameid, sum(end_time - start_time) as playtime from "PlaysGame" 
-                       where start_time > now() - interval '90' day
-                       group by gameid 
+            query = '''select PG.gameid, (select title from "Game" G where PG.gameid = G.gameid),
+                       sum(PG.end_time - PG.start_time) as playtime from "PlaysGame" PG
+                       where PG.start_time > now() - interval '90' day
+                       group by PG.gameid 
                        order by playtime desc limit 20'''
             cursor = db.cursor()
             cursor.execute(query)
             result = cursor.fetchone()
+            # res2 = [Game(g[0], GID(g[1]), g[2], g[3]) for g in result]
+            # return res2
             return result
     except Exception as e:
         print(e)
@@ -485,13 +488,16 @@ def get_most_popular_games_past_90_days():
 def get_most_popular_games_by_following(username: str):
     try:
         with cs_database() as db:
-            query = '''select pg.gameid, sum(pg.end_time - pg.start_time) as play_time from "PlaysGame" as pg
+            query = '''select pg.gameid, (select title from "Game" g where pg.gameid = g.gameid),
+                       sum(pg.end_time - pg.start_time) as play_time from "PlaysGame" as pg
                        where pg.username in (select f.friend from "Friends" as f where f.username = %s)
                        group by pg.gameid
                        order by play_time desc limit 20'''
             cursor = db.cursor()
             cursor.execute(query, username)
             result = cursor.fetchone()
+            # res2 = [Game(g[0], GID(g[1]), g[2], g[3]) for g in result]
+            # return res2
             return result
     except Exception as e:
         print(e)
@@ -500,7 +506,9 @@ def get_most_popular_games_by_following(username: str):
 def get_top_5_releases_of_month():
     try:
         with cs_database() as db:
-            query = '''select gop.gameid, gop.platformid, sum(pg.end_time - pg.start_time) as play_time from "GameOnPlatform" as gop
+            query = '''select gop.gameid, (select title from "Game" g where pg.gameid = g.gameid),
+                       gop.platformid, sum(pg.end_time - pg.start_time) as play_time 
+                       from "GameOnPlatform" as gop
                        inner join "PlaysGame" as pg on gop.gameid = pg.gameid
                        where date_part('month', pg.start_time) = date_part('month', now())
                        and date_part('month', gop.release_date) = date_part('month', now())
@@ -510,6 +518,8 @@ def get_top_5_releases_of_month():
             cursor = db.cursor()
             cursor.execute(query)
             result = cursor.fetchone()
+            # res2 = [Game(g[0], GID(g[1]), g[2], g[3]) for g in result]
+            # return res2
             return result
     except Exception as e:
         print(e)
