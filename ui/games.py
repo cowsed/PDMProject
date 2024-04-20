@@ -7,7 +7,7 @@ from typing import Dict
 import urwid
 import datetime
 
-from backend.game import Game, GID, purchase_game, get_game, play_game
+from backend.game import Game, GID, purchase_game, get_game, play_game, get_random_genre, get_random_developer
 import backend.game as game
 import backend.collection as collection
 import backend.owns_game as owns_game
@@ -168,7 +168,7 @@ class AllGameDataPage:
                     "prevgames": "main", "game": self.game})
                 return
             self.switch_menu("games.add_to_col", {
-                             "prevgames": self.prev_games, "game": self.game})
+                "prevgames": self.prev_games, "game": self.game})
             return
 
 
@@ -336,17 +336,19 @@ class GameRecommendationPage:
         self.genre = get_top_genre(player.username)
         self.developer = get_top_developer(player.username)
         self.back_btn = urwid.Button("Back", self.back)
+        self.random_genre = get_random_genre(self.player.username, self.genre)
+        self.random_developer = get_random_developer(self.player.username, self.developer)
         body = [urwid.Text("** Welcome to \"For You\" **\nRecommendations for " + player.username),
                 urwid.Divider(),
-                urwid.Text("Games based off your favourite genre, " + self.genre)]
+                urwid.Text("Games based on your favourite genre: " + self.genre)]
 
-        for g in self.get_random_genre():
+        for g in self.random_genre:
             body.append(urwid.Button(g.name, self.pressed, g.id))
 
-        body.append((urwid.Divider()))
+        body.append(urwid.Divider())
 
-        body.append(urwid.Text("Games based off your favourite developer, " + self.developer))
-        for g in self.get_random_developer():
+        body.append(urwid.Text("Games based off your favourite developer " + self.developer))
+        for g in self.random_developer:
             body.append(urwid.Button(g.name, self.pressed, g.id))
 
         body.append(self.back_btn)
@@ -354,40 +356,8 @@ class GameRecommendationPage:
         pile = urwid.Pile(body)
         self.widget = urwid.Filler(pile)
 
-    # Get 3 random games based off of favourite genre and developer that aren't owned
-    def get_random_genre(self) -> List[Game]:
-        # all games from genre that player doesn't own
-        ids = game.get_games_from_genre(self.genre)
-        for i in game.get_games_from_genre(self.genre):
-            if game.do_i_own_game(self.player.username, i) is False:
-                ids.append(i)
-        if len(ids) < 3:
-            res = ids
-        else:
-            res = random.sample(ids, 3)
-        games = []
-        for i in res:
-            games.append(get_game(i))
-        return games
-
-    def get_random_developer(self) -> List[Game]:
-        # all games from developer that player doesn't own
-        ids = []
-        for i in game.get_games_from_developer(self.developer):
-            if game.do_i_own_game(self.player.username, i) is False:
-                ids.append(i)
-        if len(ids) < 3:
-            res = ids
-        else:
-            res = random.sample(ids, 3)
-        games = []
-        for i in res:
-            games.append(get_game(i))
-        return games
-
     def pressed(self, b: urwid.Button, dat: GID):
         self.switch_menu("games.data", {"gid": dat, "prev_gamelist": False})
-
 
     def back(self, b: urwid.Button):
         self.switch_menu("main", {})

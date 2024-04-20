@@ -1,5 +1,7 @@
 import datetime
 from enum import Enum
+import random
+
 from database import cs_database
 from typing import List, Tuple
 from backend.platform import Platform, PlatformID
@@ -59,6 +61,17 @@ def get_game(gid: GID) -> Game:
         return Game(res[0], gid, res[1], res[2])
 
 
+def get_id(title: str) -> GID:
+    query = 'SELECT G.gameid from "Game" G where title = %s'
+    with cs_database() as db:
+        cur = db.cursor()
+        cur.execute(query, [title])
+        res = cur.fetchone()
+        if res is None:
+            raise Exception("No Game found with title", title)
+        return res[0]
+
+
 def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime):
     try:
         query = 'insert into "PlaysGame" values (%s, %s, %s, %s)'
@@ -69,6 +82,7 @@ def play_game(gid: GID, username: str, start_time: datetime, end_time: datetime)
     except Exception as e:
         print("play game error", e)
         return
+
 
 def get_owned_games(username: str) -> List[Game]:
     query = 'select G.title, G.gameid, G.publisher, G.esrb_rating from "Game" G natural  join "OwnsGame" O where O.username = %s order by G.title'
@@ -84,7 +98,7 @@ def purchase_game(username: str, gid: GID):
     with cs_database() as db:
         cur = db.cursor()
         cur.execute('insert into "OwnsGame" (gameid, username, star_rating, review_text) VALUES (%s, %s, NULL, NULL)', [
-                    gid.id, username])
+            gid.id, username])
 
         db.commit()
 
@@ -124,7 +138,7 @@ def search_games(
         rating=0,
         sort_column="G.title",
         sort_order="ASC"
-    ) -> List[Tuple[Game, str, str, str]]:
+) -> List[Tuple[Game, str, str, str]]:
     """
     Returns every game that matches the provided search criteria.
 
@@ -209,7 +223,8 @@ def search_games(
             result = cursor.fetchall()
 
             # sort the result by the chosen column
-            result = sorted(result, key = lambda i: (i[sort_column] is None, i[sort_column]), reverse = (sort_order == "DESC"))
+            result = sorted(result, key=lambda i: (i[sort_column] is None, i[sort_column]),
+                            reverse=(sort_order == "DESC"))
 
             res2 = [
                 (
@@ -336,7 +351,8 @@ def add_game(title: str, esrb_rating: str, publisher: str):
         print(e)
 
 
-def add_game_to_platform(game_id="", game_title="", platform_id="", platform_title="", price=0.00, release_date=datetime.date(2000, 1, 1)):
+def add_game_to_platform(game_id="", game_title="", platform_id="", platform_title="", price=0.00,
+                         release_date=datetime.date(2000, 1, 1)):
     """
     Adds an entry to "GameOnPlatform" for the game with the specified id/title and the specified platform.
 
@@ -378,7 +394,8 @@ def add_game_to_platform(game_id="", game_title="", platform_id="", platform_tit
                     query, (game_title, platform_title, price, release_date))
                 db.commit()
             else:
-                print("Failed to insert. You must enter either both 'gameid' and 'platformid' or both 'game_title' and 'platform_title'.")
+                print(
+                    "Failed to insert. You must enter either both 'gameid' and 'platformid' or both 'game_title' and 'platform_title'.")
     except Exception as e:
         print(e)
 
@@ -454,6 +471,7 @@ def add_genre_to_game(game_id="", game_title="", genre=""):
     except Exception as e:
         print(e)
 
+
 # Remove game with passed id
 def remove_game(id: GID):
     try:
@@ -466,6 +484,7 @@ def remove_game(id: GID):
     except Exception as e:
         print(e)
         return None
+
 
 def get_most_popular_games_past_90_days():
     try:
@@ -482,6 +501,7 @@ def get_most_popular_games_past_90_days():
         print(e)
         return None
 
+
 def get_most_popular_games_by_following(username: str):
     try:
         with cs_database() as db:
@@ -496,7 +516,8 @@ def get_most_popular_games_by_following(username: str):
     except Exception as e:
         print(e)
         return None
-    
+
+
 def get_top_10_releases_of_month():
     try:
         with cs_database() as db:
@@ -514,3 +535,53 @@ def get_top_10_releases_of_month():
     except Exception as e:
         print(e)
         return None
+
+
+"""
+Returns a list of 3 random games from a developer that a user doesn't own
+"""
+
+
+def get_random_developer(username: str, developer: str) -> List[Game]:
+    ids = []
+    x = 0
+    data = get_games_from_developer(developer)
+    if len(data) < 10:
+        res = random.sample(data, len(data))
+    else:
+        res = random.sample(data, 10)
+    for i in res:
+        if x > 3:
+            break
+        if do_i_own_game(username, i) is False:
+            ids.append(i)
+            x += 1
+    games = []
+    for i in ids:
+        games.append(get_game(i))
+    return games
+
+
+"""
+Returns a list of 3 random games from a genre that a user doesn't own
+"""
+
+
+def get_random_genre(username: str, genre: str) -> List[Game]:
+    ids = []
+    x = 0
+    data = get_games_from_genre(genre)
+    if len(data) < 10:
+        res = random.sample(data, len(data))
+    else:
+        res = random.sample(data, 10)
+    for i in res:
+        if x > 2:
+            break
+        if do_i_own_game(username, i) is False:
+            ids.append(i)
+            x += 1
+    games = []
+    for i in ids:
+        games.append(get_game(i))
+    return games
