@@ -489,14 +489,21 @@ def remove_game(id: GID):
 def get_most_popular_games_past_90_days():
     try:
         with cs_database() as db:
-            query = '''select gameid, sum(end_time - start_time) as playtime from "PlaysGame" 
-                       where start_time > now() - interval '90' day
-                       group by gameid 
+            query = '''SELECT
+                            (SELECT title FROM "Game" where gameid=PG.gameid),
+                            PG.gameid,
+                            (SELECT publisher FROM "Game" where gameid=PG.gameid),
+                            (SELECT esrb_rating FROM "Game" where gameid=PG.gameid),
+                            sum(end_time - start_time) as playtime
+                       From "PlaysGame" PG
+                       where PG.start_time > now() - interval '90' day
+                       group by PG.gameid 
                        order by playtime desc limit 20'''
             cursor = db.cursor()
             cursor.execute(query)
-            result = cursor.fetchone()
-            return result
+            data = cursor.fetchall()
+            res = [Game(res[0], res[1], res[2], res[3]) for res in data]
+            return res
     except Exception as e:
         print(e)
         return None
@@ -505,33 +512,47 @@ def get_most_popular_games_past_90_days():
 def get_most_popular_games_by_following(username: str):
     try:
         with cs_database() as db:
-            query = '''select pg.gameid, sum(pg.end_time - pg.start_time) as play_time from "PlaysGame" as pg
+            query = '''SELECT
+                            (SELECT title FROM "Game" where gameid=PG.gameid),
+                            PG.gameid,
+                            (SELECT publisher FROM "Game" where gameid=PG.gameid),
+                            (SELECT esrb_rating FROM "Game" where gameid=PG.gameid),
+                            sum(end_time - start_time) as playtime
+                       from "PlaysGame" as pg
                        where pg.username in (select f.friend from "Friends" as f where f.username = %s)
                        group by pg.gameid
-                       order by play_time desc limit 20'''
+                       order by playtime desc limit 20'''
             cursor = db.cursor()
-            cursor.execute(query, username)
-            result = cursor.fetchone()
-            return result
+            cursor.execute(query, [username])
+            data = cursor.fetchall()
+            res = [Game(res[0], res[1], res[2], res[3]) for res in data]
+            return res
     except Exception as e:
         print(e)
         return None
-
-
-def get_top_10_releases_of_month():
+    
+def get_top_5_releases_of_month():
     try:
         with cs_database() as db:
-            query = '''select gop.gameid, gop.platformid, sum(pg.end_time - pg.start_time) as play_time from "GameOnPlatform" as gop
+            query = '''SELECT
+                            (SELECT title FROM "Game" where gameid=gop.gameid),
+                            gop.gameid,
+                            (SELECT publisher FROM "Game" g where g.gameid=gop.gameid),
+                            (SELECT esrb_rating FROM "Game" g where g.gameid=gop.gameid),
+                            sum(pg.end_time - pg.start_time) as playtime,
+                            gop.platformid
+                       from "GameOnPlatform" as gop
                        inner join "PlaysGame" as pg on gop.gameid = pg.gameid
                        where date_part('month', pg.start_time) = date_part('month', now())
                        and date_part('month', gop.release_date) = date_part('month', now())
                        and date_part('year', gop.release_date) = date_part('year', now())
                        group by gop.platformid, gop.gameid
-                       order by play_time desc limit 10'''
+                       order by playtime desc limit 5'''
             cursor = db.cursor()
             cursor.execute(query)
-            result = cursor.fetchone()
-            return result
+            data = cursor.fetchall()
+            res = [Game(res[0], res[1], res[2], res[3]) for res in data]
+            return res
     except Exception as e:
         print(e)
         return None

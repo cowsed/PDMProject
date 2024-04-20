@@ -328,7 +328,66 @@ class GameSearchPage:
                                   developer, (price_low, price_high), genre, esrb, rating, sort_by, sort_order)
         self.switch_menu("games.results", {"games": games})
 
+class MostPopularIn90DayPage:
+    def __init__(self, switch_menu, player: Player, args: Dict):
+        self.switch_menu = switch_menu
+        self.back_btn = urwid.Button(
+            "Back to all recommendations", self.back_pressed)
+        body = [urwid.Text("Top 20 Most Popular Video Games in the Last 90 Days"),
+                urwid.Divider()]
 
+        for g in game.get_most_popular_games_past_90_days():
+            body.append(urwid.Button(g.name, self.pressed, g.id))
+
+        pile = urwid.Pile(body)
+        self.widget = urwid.Filler(pile)
+
+    def back_pressed(self, b: urwid.Button):
+        self.switch_menu("back", {})
+
+    def pressed(self, buttone, id):
+        self.switch_menu("main", {})
+
+class Top5ReleasesOfMonth:
+    def __init__(self, switch_menu, player: Player, args: Dict):
+        self.switch_menu = switch_menu
+        self.back_btn = urwid.Button(
+            "Back to all recommendations", self.back_pressed)
+        body = [urwid.Text("Top 5 Releases This Month"),
+                urwid.Divider()]
+
+        for g in game.get_top_5_releases_of_month():
+            body.append(urwid.Button(g.name, self.pressed, g.id))
+
+        pile = urwid.Pile(body)
+        self.widget = urwid.Filler(pile)
+
+    def back_pressed(self, b: urwid.Button):
+        self.switch_menu("back", {})
+
+    def pressed(self, buttone, id):
+        self.switch_menu("main", {})
+
+class MostPopularByFollowing:
+    def __init__(self, switch_menu, player: Player, args: Dict):
+        self.switch_menu = switch_menu
+        self.back_btn = urwid.Button(
+            "Back to all recommendations", self.back_pressed)
+        body = [urwid.Text("Top 20 Most Popular Games Video Games Among Your Followers"),
+                urwid.Divider()]
+
+        for g in game.get_most_popular_games_by_following(username=player.username):
+            body.append(urwid.Button(g.name, self.pressed, g.id))
+
+        pile = urwid.Pile(body)
+        self.widget = urwid.Filler(pile)
+
+    def back_pressed(self, b: urwid.Button):
+        self.switch_menu("back", {})
+
+    def pressed(self, buttone, id):
+        self.switch_menu("main", {})
+    
 class GameRecommendationPage:
     def __init__(self, switch_menu, player: Player, args: Dict):
         self.switch_menu = switch_menu
