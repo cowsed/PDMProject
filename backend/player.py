@@ -3,6 +3,7 @@ import datetime
 from typing import List
 
 from backend import game
+from backend.game import get_id
 from database import cs_database
 import psycopg2
 from hashlib import pbkdf2_hmac
@@ -174,16 +175,14 @@ def add_player(username: str, first_name: str, last_name: str, password: str, em
         except psycopg2.errors.UniqueViolation:
             raise DuplicateNameException
 
-
-
+"""
+gets top genre from users top 10 games
+"""
 def get_top_genre(username: str):
-    # List of games a user owns
-    games = game.get_owned_games(username)
-    # List of game ids a user owns
-    ids = []
-    for g in games:
-        ids.append(g.id.id)
-    placeholder = ', '.join(map(str, ids))
+    # top 10 games a user owns
+    games = get_top_ten_ids(username, 0)
+    # List of top 10 game ids
+    placeholder = ', '.join(map(str, games))
     query = f'SELECT mode() WITHIN GROUP (ORDER BY genre_name) FROM "Genre" WHERE gameid IN ({placeholder})'
     with cs_database() as db:
         try:
@@ -210,14 +209,14 @@ def get_owned_platforms(username: str):
             raise e
 
 
+"""
+gets top developer from a users top 10 games
+"""
 def get_top_developer(username: str):
-    # List of games a user owns
-    games = game.get_owned_games(username)
-    # List of game ids a user owns
-    ids = []
-    for g in games:
-        ids.append(g.id.id)
-    placeholder = ', '.join(map(str, ids))
+    # List of top 10 games for user
+    games = get_top_ten_ids(username, 0)
+    # List of top 10 game ids a user owns
+    placeholder = ', '.join(map(str, games))
     query = f'SELECT mode() WITHIN GROUP (ORDER BY developer) FROM "Development" WHERE gameid IN ({placeholder})'
     with cs_database() as db:
         try:
@@ -229,7 +228,7 @@ def get_top_developer(username: str):
             print("get top developer failed", e)
             raise e
 
-        
+
 def get_num_created_collections(username: str) -> int:
     try:
         with cs_database() as db:
@@ -240,7 +239,7 @@ def get_num_created_collections(username: str) -> int:
     except Exception as e:
         print(e)
         raise e
-    
+
 
 def get_num_followers(username: str) -> int:
     try:
@@ -252,7 +251,7 @@ def get_num_followers(username: str) -> int:
     except Exception as e:
         print(e)
         raise e
-    
+
 
 def get_num_following(username: str) -> int:
     try:
@@ -264,7 +263,7 @@ def get_num_following(username: str) -> int:
     except Exception as e:
         print(e)
         raise e
-    
+
 
 def get_top_ten_video_games(username: str, sort_by=0) -> list:
     """
@@ -298,7 +297,7 @@ def get_top_ten_video_games(username: str, sort_by=0) -> list:
                 WHERE OG.username=%s
             """
             query_sort = "ORDER BY playtime DESC NULLS LAST, OG.star_rating DESC NULLS LAST" if sort_by <= 0 \
-                    else "ORDER BY OG.star_rating DESC NULLS LAST, playtime DESC NULLS LAST"
+                else "ORDER BY OG.star_rating DESC NULLS LAST, playtime DESC NULLS LAST"
             query += query_sort + " LIMIT 10"
 
             cursor = db.cursor()
@@ -307,3 +306,35 @@ def get_top_ten_video_games(username: str, sort_by=0) -> list:
     except Exception as e:
         print(e)
         raise e
+
+
+def get_top_ten_ids(username: str, sort_by=0) -> list:
+    """
+    same thing as top ten video games except it returns game ids instead of titles
+    """
+
+    try:
+        with cs_database() as db:
+            query = """
+                SELECT G.gameid,
+                       OG.star_rating,
+                       (SELECT SUM(EXTRACT(EPOCH FROM (end_time - start_time)))
+                        FROM "PlaysGame"
+                        WHERE G.gameid=gameid AND OG.username=username) AS playtime
+                FROM "Game" G
+                JOIN "OwnsGame" OG ON OG.gameid=G.gameid
+                WHERE OG.username=%s
+            """
+            query_sort = "ORDER BY playtime DESC NULLS LAST, OG.star_rating DESC NULLS LAST" if sort_by <= 0 \
+                else "ORDER BY OG.star_rating DESC NULLS LAST, playtime DESC NULLS LAST"
+            query += query_sort + " LIMIT 10"
+
+            cursor = db.cursor()
+            cursor.execute(query, (username,))
+            res = cursor.fetchall()
+            res1 = [g[0] for g in res]
+            return res1
+    except Exception as e:
+        print(e)
+        raise e
+
