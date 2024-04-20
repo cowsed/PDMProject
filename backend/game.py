@@ -492,17 +492,21 @@ def get_most_popular_games_past_90_days():
 def get_most_popular_games_by_following(username: str):
     try:
         with cs_database() as db:
-            query = '''select pg.gameid, (select title from "Game" g where pg.gameid = g.gameid),
-                       sum(pg.end_time - pg.start_time) as play_time from "PlaysGame" as pg
+            query = '''SELECT
+                            (SELECT title FROM "Game" where gameid=PG.gameid),
+                            PG.gameid,
+                            (SELECT publisher FROM "Game" where gameid=PG.gameid),
+                            (SELECT esrb_rating FROM "Game" where gameid=PG.gameid),
+                            sum(end_time - start_time) as playtime
+                       from "PlaysGame" as pg
                        where pg.username in (select f.friend from "Friends" as f where f.username = %s)
                        group by pg.gameid
-                       order by play_time desc limit 20'''
+                       order by playtime desc limit 20'''
             cursor = db.cursor()
-            cursor.execute(query, username)
-            result = cursor.fetchone()
-            # res2 = [Game(g[0], GID(g[1]), g[2], g[3]) for g in result]
-            # return res2
-            return result
+            cursor.execute(query, [username])
+            data = cursor.fetchall()
+            res = [Game(res[0], res[1], res[2], res[3]) for res in data]
+            return res
     except Exception as e:
         print(e)
         return None
@@ -510,21 +514,25 @@ def get_most_popular_games_by_following(username: str):
 def get_top_5_releases_of_month():
     try:
         with cs_database() as db:
-            query = '''select gop.gameid, (select title from "Game" g where pg.gameid = g.gameid),
-                       gop.platformid, sum(pg.end_time - pg.start_time) as play_time 
+            query = '''SELECT
+                            (SELECT title FROM "Game" where gameid=gop.gameid),
+                            gop.gameid,
+                            (SELECT publisher FROM "Game" g where g.gameid=gop.gameid),
+                            (SELECT esrb_rating FROM "Game" g where g.gameid=gop.gameid),
+                            sum(pg.end_time - pg.start_time) as playtime,
+                            gop.platformid
                        from "GameOnPlatform" as gop
                        inner join "PlaysGame" as pg on gop.gameid = pg.gameid
                        where date_part('month', pg.start_time) = date_part('month', now())
                        and date_part('month', gop.release_date) = date_part('month', now())
                        and date_part('year', gop.release_date) = date_part('year', now())
                        group by gop.platformid, gop.gameid
-                       order by play_time desc limit 5'''
+                       order by playtime desc limit 5'''
             cursor = db.cursor()
             cursor.execute(query)
-            result = cursor.fetchone()
-            # res2 = [Game(g[0], GID(g[1]), g[2], g[3]) for g in result]
-            # return res2
-            return result
+            data = cursor.fetchall()
+            res = [Game(res[0], res[1], res[2], res[3]) for res in data]
+            return res
     except Exception as e:
         print(e)
         return None
