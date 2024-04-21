@@ -3,7 +3,8 @@ import urwid
 from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
-from ui.account import AccountPage, ChangeNamePage
+
+from ui.account import AccountPage, ChangeNamePage, Top10VideoGamesPage
 from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime, \
     MostPopularPage, GameRecommendationPage, GameDataPage
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
@@ -55,6 +56,7 @@ def pick_choice(user, args, choice):
         "main": lambda args: MainPage(switch_menu, user),
         "account": lambda args: AccountPage(switch_menu, user, args),
         "account.changename": lambda args: ChangeNamePage(switch_menu, user, args),
+        "account.top10videogames": lambda args: Top10VideoGamesPage(switch_menu, user, args),
 
         "games": lambda args: GameSearchPage(switch_menu, user, args),
         "games.results": lambda args: GameResultsPage(switch_menu, user, args),
