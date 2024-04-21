@@ -1,6 +1,8 @@
 import urwid
 from typing import Dict
-from backend.player import Player, change_names, get_num_created_collections, get_num_followers, get_num_following, get_top_ten_video_games
+
+from backend.player import Player, change_names, get_num_created_collections, get_num_followers, get_num_following, get_top_ten_video_games, get_owned_platforms
+
 
 
 class AccountPage:
@@ -12,6 +14,7 @@ class AccountPage:
                 urwid.Divider(),
                 urwid.Text("Last Online: %s" % player.last_online),
                 urwid.Text("Account Created: %s" % player.creation_date),
+                urwid.Text("Owned platforms: " + str(get_owned_platforms(player.username))),
                 urwid.Divider(), 
                 urwid.Text("Collections: %s" % get_num_created_collections(player.username)),
                 urwid.Text("Followers: %s" % get_num_followers(player.username)),

@@ -1,6 +1,9 @@
 from typing import Optional
 import datetime
 from typing import List
+
+from backend import game
+from backend.game import get_id
 from database import cs_database
 import psycopg2
 from hashlib import pbkdf2_hmac
@@ -8,6 +11,7 @@ from secrets import token_bytes, compare_digest
 
 HASH_ITERATIONS = 500_000
 SALT_LENGTH = 32
+
 
 class Player:
     """Class for keeping important details of a user"""
@@ -19,7 +23,8 @@ class Player:
     salt: bytes
     last_online: datetime.date
 
-    def __init__(self, username: str, first_name: str, last_name: str, creation_date: datetime.date, password: bytes, salt: bytes,
+    def __init__(self, username: str, first_name: str, last_name: str, creation_date: datetime.date, password: bytes,
+                 salt: bytes,
                  last_online: datetime.date):
         self.username = username
         self.first_name = first_name
@@ -33,9 +38,6 @@ class Player:
         return "Player (%s, %s, %s, %s, %s, %s)" % (
             self.username, self.first_name, self.last_name, self.creation_date, self.password, self.last_online)
 
-    def get_platforms_owned(self):
-        raise NotImplementedError
-
     def get_emails(self) -> List[str]:
         with cs_database() as db:
             cur = db.cursor()
@@ -44,12 +46,11 @@ class Player:
             res = list(map(lambda t: t[0], cur.fetchall()))
 
             return res
-        
+
     def test_password(self, password) -> bool:
         # hash the password
         hashed = pbkdf2_hmac('sha256', password.encode('utf-8'), self.salt, HASH_ITERATIONS)
         return compare_digest(hashed, self.password)
-
 
 
 def update_last_online(username: str, last_online: datetime.date):
@@ -174,7 +175,60 @@ def add_player(username: str, first_name: str, last_name: str, password: str, em
         except psycopg2.errors.UniqueViolation:
             raise DuplicateNameException
 
-        
+"""
+gets top genre from users top 10 games
+"""
+def get_top_genre(username: str):
+    # top 10 games a user owns
+    games = get_top_ten_ids(username, 0)
+    # List of top 10 game ids
+    placeholder = ', '.join(map(str, games))
+    query = f'SELECT mode() WITHIN GROUP (ORDER BY genre_name) FROM "Genre" WHERE gameid IN ({placeholder})'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query)
+            res = cur.fetchone()
+            return res[0]
+        except Exception as e:
+            print("get top genre failed", e)
+            raise e
+
+
+def get_owned_platforms(username: str):
+    query = 'SELECT name FROM "Platform" WHERE platformid IN ' \
+            '(SELECT platformid FROM "OwnsPlatform" WHERE username = %s)'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query, [username])
+            res = cur.fetchall()
+            return [val[0] for val in res]
+        except Exception as e:
+            print("get top developer failed", e)
+            raise e
+
+
+"""
+gets top developer from a users top 10 games
+"""
+def get_top_developer(username: str):
+    # List of top 10 games for user
+    games = get_top_ten_ids(username, 0)
+    # List of top 10 game ids a user owns
+    placeholder = ', '.join(map(str, games))
+    query = f'SELECT mode() WITHIN GROUP (ORDER BY developer) FROM "Development" WHERE gameid IN ({placeholder})'
+    with cs_database() as db:
+        try:
+            cur = db.cursor()
+            cur.execute(query)
+            res = cur.fetchone()
+            return res[0]
+        except Exception as e:
+            print("get top developer failed", e)
+            raise e
+
+
 def get_num_created_collections(username: str) -> int:
     try:
         with cs_database() as db:
@@ -185,7 +239,7 @@ def get_num_created_collections(username: str) -> int:
     except Exception as e:
         print(e)
         raise e
-    
+
 
 def get_num_followers(username: str) -> int:
     try:
@@ -197,7 +251,7 @@ def get_num_followers(username: str) -> int:
     except Exception as e:
         print(e)
         raise e
-    
+
 
 def get_num_following(username: str) -> int:
     try:
@@ -209,7 +263,7 @@ def get_num_following(username: str) -> int:
     except Exception as e:
         print(e)
         raise e
-    
+
 
 def get_top_ten_video_games(username: str, sort_by=0) -> list:
     """
@@ -243,7 +297,7 @@ def get_top_ten_video_games(username: str, sort_by=0) -> list:
                 WHERE OG.username=%s
             """
             query_sort = "ORDER BY playtime DESC NULLS LAST, OG.star_rating DESC NULLS LAST" if sort_by <= 0 \
-                    else "ORDER BY OG.star_rating DESC NULLS LAST, playtime DESC NULLS LAST"
+                else "ORDER BY OG.star_rating DESC NULLS LAST, playtime DESC NULLS LAST"
             query += query_sort + " LIMIT 10"
 
             cursor = db.cursor()
@@ -252,3 +306,35 @@ def get_top_ten_video_games(username: str, sort_by=0) -> list:
     except Exception as e:
         print(e)
         raise e
+
+
+def get_top_ten_ids(username: str, sort_by=0) -> list:
+    """
+    same thing as top ten video games except it returns game ids instead of titles
+    """
+
+    try:
+        with cs_database() as db:
+            query = """
+                SELECT G.gameid,
+                       OG.star_rating,
+                       (SELECT SUM(EXTRACT(EPOCH FROM (end_time - start_time)))
+                        FROM "PlaysGame"
+                        WHERE G.gameid=gameid AND OG.username=username) AS playtime
+                FROM "Game" G
+                JOIN "OwnsGame" OG ON OG.gameid=G.gameid
+                WHERE OG.username=%s
+            """
+            query_sort = "ORDER BY playtime DESC NULLS LAST, OG.star_rating DESC NULLS LAST" if sort_by <= 0 \
+                else "ORDER BY OG.star_rating DESC NULLS LAST, playtime DESC NULLS LAST"
+            query += query_sort + " LIMIT 10"
+
+            cursor = db.cursor()
+            cursor.execute(query, (username,))
+            res = cursor.fetchall()
+            res1 = [g[0] for g in res]
+            return res1
+    except Exception as e:
+        print(e)
+        raise e
+
