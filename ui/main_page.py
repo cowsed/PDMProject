@@ -4,7 +4,8 @@ from backend.player import Player, get_player
 from typing import Hashable, Callable, Any, Iterable, Dict
 
 from ui.account import AccountPage, ChangeNamePage
-from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime, MostPopularIn90DayPage, Top5ReleasesOfMonth, MostPopularByFollowing
+from ui.games import GameSearchPage, GameResultsPage, AllGameDataPage, AddGameToCollection, LogGameTime, \
+    MostPopularPage, GameRecommendationPage, GameDataPage
 from ui.collection import CollectionsPage, NewCollection, ViewCollection
 from ui.library import LibraryPage, ViewOnePage, ChangeRating
 from ui.friends import FriendsSearchPage, FriendResultsPage, FriendInfoPage
@@ -19,7 +20,7 @@ class MainPage():
 
         body = [urwid.Text("Menu: "+player.username), urwid.Divider()]
 
-        for c in ["Account", "Game Search", "Game Recommendations", "Collections", "Library", "Friends", "Quit"]:
+        for c in ["Account", "Game Search", "Game Data", "Collections", "Library", "Friends", "Quit"]:
             button = urwid.Button(c)
             urwid.connect_signal(button, "click", self.item_chosen, c)
             body.append(urwid.AttrMap(button, None, focus_map="reversed"))
@@ -36,8 +37,8 @@ class MainPage():
                 switch_menu("account", {})
             case "Game Search":
                 switch_menu("games", {})
-            case "Game Recommendations":
-                switch_menu("recommendations", {})
+            case "Game Data":
+                switch_menu("data", {})
             case "Collections":
                 switch_menu("collections", {})
             case "Library":
@@ -61,7 +62,9 @@ def pick_choice(user, args, choice):
         "games.add_to_col": lambda args: AddGameToCollection(switch_menu, user, args),
         "games.log_time": lambda args: LogGameTime(switch_menu, user, args),
 
-        "recommendations": lambda args: MostPopularByFollowing(switch_menu, user, args),
+        "data": lambda args: GameDataPage(switch_menu, user, args),
+        "recommendations": lambda args: GameRecommendationPage(switch_menu, user, args),
+        "popular": lambda args: MostPopularPage(switch_menu, user, args),
 
         "collections": lambda args: CollectionsPage(switch_menu, user, args),
         "collections.new": lambda args: NewCollection(switch_menu, user, args),

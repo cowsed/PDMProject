@@ -530,7 +530,8 @@ def get_most_popular_games_by_following(username: str):
     except Exception as e:
         print(e)
         return None
-    
+
+
 def get_top_5_releases_of_month():
     try:
         with cs_database() as db:
